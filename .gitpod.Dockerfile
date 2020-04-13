@@ -1,6 +1,6 @@
-FROM gitpod/workspace-mysql
+FROM gitpod/workspace-full
                     
-USER gitpod
+USER JoJo
 
 # Install custom tools, runtime, etc. using apt-get
 # For example, the command below would install "bastet" - a command line tetris clone:
