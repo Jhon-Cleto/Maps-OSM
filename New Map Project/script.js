@@ -36,14 +36,14 @@ mymark.dragging.enable()
 
 let busicon = L.icon({
     iconUrl: 'bus.png',
-    iconSize: [25, 30]
+    iconSize: [24, 32]
 });
 
 mymark.setIcon(busicon);
 
 let ImHere = L.icon({
     iconUrl: 'iamhere.png',
-    iconSize: [45, 45]
+    iconSize: [50, 50]
 });
 
 marker.setIcon(ImHere);
