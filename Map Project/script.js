@@ -4,45 +4,29 @@ var mymap = L.map('mymap', {
     zoom: 15
 });
 
-var CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 19
-});		
-
 var CartoDB_Voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
 	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
 	subdomains: 'abcd',
 	maxZoom: 19
 }).addTo(mymap);
 
-let marker = L.marker([-22.817011, -47.069764]).addTo(mymap)
-    .bindPopup("<b>Hello World!</b><br/>I am a popup.").openPopup();
+let marker = L.marker([-22.817011, -47.069764]).addTo(mymap);
 
 var popup = L.popup();
 
-function onMapClick(e) {
-    popup
-        .setLatLng(e.latlng)
-        .setContent("Você clicou no mapa em " + e.latlng.toString())
-        .openOn(mymap);
-}
+let busMarker = L.marker([-22.821955, -47.069678]).addTo(mymap);
 
-mymap.on('click', onMapClick);
-
-let mymark = L.marker([-22.821955, -47.069678]).addTo(mymap);
-
-mymark.dragging.enable()
+busMarker.dragging.enable()
 
 let busicon = L.icon({
-    iconUrl: 'bus.png',
+    iconUrl: './img/bus.png',
     iconSize: [24, 32]
 });
 
-mymark.setIcon(busicon);
+busMarker.setIcon(busicon);
 
 let ImHere = L.icon({
-    iconUrl: 'iamhere.png',
+    iconUrl: './img/iamhere.png',
     iconSize: [50, 50]
 });
 

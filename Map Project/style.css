@@ -1,4 +1,9 @@
 div#mymap{
-    width: 800px;
+    width: 630px;
     height: 600px;
+    float: left;
+    margin-left: 0px;
+    position: relative;
+    overflow: hidden;
 }
+  

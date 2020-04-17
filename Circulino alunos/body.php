@@ -7,10 +7,10 @@
             <div align="center" style="border-radius: 6px; border-style: solid; border-color: black; border-width: 2px; background:  white; width: 320px;">
                 Escolher Circular:<br>
                 <select id="rotas" onchange="trocar_rota();">
-                    <option value="1" <?php if ($_REQUEST['rota'] < 2) echo selected;?>>Circular 1 (sentido anti-hor&aacute;rio)</option>
-                    <option value="2" <?php if ($_REQUEST['rota'] == 2) echo selected;?>>Circular 2 - via FEC (sentido hor&aacute;rio)</option>
-                    <option value="3" <?php if ($_REQUEST['rota'] == 3) echo selected;?>>Circular 2 - via Museu (sentido hor&aacute;rio)</option>
-                    <option value="4" <?php if ($_REQUEST['rota'] == 4) echo selected;?>>Circular Noturno (sentido hor&aacute;rio)</option>
+                    <option value="1" <?php if ($_REQUEST['rota'] < 2) echo "selected";?>>Circular 1 (sentido anti-hor&aacute;rio)</option>
+                    <option value="2" <?php if ($_REQUEST['rota'] == 2) echo "selected";?>>Circular 2 - via FEC (sentido hor&aacute;rio)</option>
+                    <option value="3" <?php if ($_REQUEST['rota'] == 3) echo "selected";?>>Circular 2 - via Museu (sentido hor&aacute;rio)</option>
+                    <option value="4" <?php if ($_REQUEST['rota'] == 4) echo "selected";?>>Circular Noturno (sentido hor&aacute;rio)</option>
                 </select>
             </div>
         <Br> 
