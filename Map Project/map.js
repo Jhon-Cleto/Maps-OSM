@@ -1,6 +1,6 @@
+
 var traceRoute = false;
 var map;
-
 
 var markerBus;
 var markerIAmHere;
@@ -15,8 +15,10 @@ var marker;
 
 var currentLatOnibus = -22.827216;
 var currentLgnOnibus = -47.061095;
+
 var currentLatUsuario = -22.817113;
 var currentLngUsuario = -47.069672;
+
 var currentVelocOnibus;
 var statusCoordinates = 1;
 var lastSend = "";
@@ -44,14 +46,14 @@ function insertKML(){
 
 
 function initialize(){
-    var options = {
+    let options = {
         center: [-22.821677, -47.065283],
         zoom: 15
     }
 
     map = L.map('mymap', options);
 
-    var CartoDB_Voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    let CartoDB_Voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: 'abcd',
         maxZoom: 19
@@ -65,7 +67,7 @@ function initialize(){
 
 };
 
-//Função para colocar o marcador do onibus
+//Função para colocar o marcador do ônibus
 function putBusMarker() {
     if(markerBus != null){
         markerBus.removeFrom(map);
