@@ -1,3 +1,14 @@
+<?php
+    // verificando a sele��o de "Estou em"
+    if (! isset ( $_POST ['myLocal'] )) {
+        $meuLocal = 0;
+    } else {
+        $meuLocal = $_POST ['myLocal'];
+    }
+?>
+
+
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -11,14 +22,83 @@
 		<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
 		
         <link rel="stylesheet" href="styles/style.css">
+        <link href="styles/mapa.css" rel="stylesheet" type="text/css" />
+        <link href="styles/circular.css" rel="stylesheet" type="text/css" />
+        <link href='https://fonts.googleapis.com/css?family=PT+Sans+Narrow' rel='stylesheet' type='text/css'>
+        
         <script src="./scripts/L.KML.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="./scripts/map.js"></script>
+        
 
 
     </head>
 
-    <body>
-        <div id="mymap"></div>
-        <script src="./scripts/map.js"></script>
+    <body onload="setLocation();">
+        
+        <br />
+	
+        <table width="100%">
+            <tbody>
+                <tr>
+                    <td>	
+                        <p class="mapa_texto">
+                            <span style="color: #b45938; font-size: 18px; font-weight: bold;">
+                                Instruções gerais </span> <br /> <br /> - Selecione a linha desejada
+                            para carregar o itinerário (Circular I, Circular II via FEC, Circular
+                            II via Museu ou Circular Noturno) <br /> - Clique sobre o ponto
+                            desejado para obter os horários previstos de passagem dos ônibus nos
+                            próximos 60 minutos <br /> - Clique no botão traçar rota para ver a
+                            distância entre o ônibus e o ponto mais próximo de você
+                            <br> - Para relação geral dos horários das linhas, acesse a página da 
+                            <a href="https://www.prefeitura.unicamp.br/servicos/diretoria-de-servicos-de-transporte#circular">Unitransp</a>
+                            <br /> 
+			
+                            <br /> <br />
+                            <span font-size: 15px;>
+                                Esta funcionalidade foi desenvolvida dentro do <a href="http://smartcampus.prefeitura.unicamp.br/" target="_blank">Projeto SmartCampus.</a>
+                            </span>
+                            
+                            <br />
+                        </p>					
+                    </td>
+                    <td>	
+                        <a href="http://smartcampus.prefeitura.unicamp.br/" target="_blank">
+                            <img src="https://www.prefeitura.unicamp.br/imagens/estrutura/smart-campus-site.png"  alt="Projeto Smart Campus" title="Projeto Smart Campus" style="float:right;position:relative;margin-top: 0px; margin-right:130PX">
+                        </a>
+                            
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        
+
+        <div id="container">
+            <div id="mymap"></div>
+
+            <div style="float: left; margin-left: 0px; height: 600px; width: 30%;">
+                <form id="form" name="form" action="<?=$_SERVER['PHP_SELF']?>" method="POST">
+
+                    <div id="controls1" style="width: 280px; height: auto; float: left; margin-left: 25px;">
+                        <strong class="mapa_titulo_2">Estou em</strong>
+                            <br/>
+
+                            <input type="radio" name="myLocal" id="myLocal" onclick="setLocation();"
+                                    value="0" <?php if($meuLocal==0){echo "CHECKED";}?>>Marcador
+                                        (arraste o marcador para indicar sua posição) <br />
+                            
+                            <input type="radio" name="myLocal" id="myLocal" onclick="setLocation();"
+						            value="1" <?php if($meuLocal==1){echo "CHECKED";}?>>Minha
+                                        localiza&#231;&#227;o (apenas para dispositivos com GPS) <br /> <br />
+                                        
+
+                            
+
+                    </div>
+            
+                </form>
+            </div>
+	    </div>
     </body>
 </html>

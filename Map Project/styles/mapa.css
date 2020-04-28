@@ -1,0 +1,40 @@
+body {
+	margin:0; 
+	font-family:"PT Sans Narrow";
+	font-size: 11px;
+	color: #333333;
+	}
+
+.mapa_titulo_1 {
+	font-size: 19px;
+	font-weight:bold;
+}
+
+.mapa_titulo_2 {
+	font-size: 18px;
+	font-weight:bold;
+	color:#B45938;
+}
+
+.mapa_link{
+	font-size: 14px;
+}
+
+.mapa_link a{
+	text-decoration:none;
+	font-size: 14px;
+	color:#333;
+}
+
+.mapa_link a:hover{
+	text-decoration:underline;
+	font-size: 14px;
+	color:#333;
+}
+
+.mapa_texto{
+	font-family: "PT Sans Narrow",Verdana,Geneva,sans-serif;
+    font-size: 15px;
+    line-height: 18px;
+    margin: 0 0 9px;
+}

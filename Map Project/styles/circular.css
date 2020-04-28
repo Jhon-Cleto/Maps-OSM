@@ -1,0 +1,94 @@
+	
+/*DIV BUSCA CIRCULAR*/	
+.busca_circular{
+	font-size: 15px;
+	color: #333;
+	border:1px solid #CCC;
+	background:#F2F6FB;
+	width:80%;
+	margin:0 10px 0 10px;
+	padding:10px;
+	z-index:auto;
+}
+
+.resultado_circular{
+	font-size: 15px;
+	color:#333;
+	background:#FFF;
+	margin:0 10px 0 10px;
+	width:100%;
+	padding:0px;
+	z-index:auto;
+}
+
+.resultado_circular a{
+	color:#0088CC;
+	text-decoration:none;
+}
+
+.resultado_circular a:hover{
+	color:#005580;
+	text-decoration:underline;
+}
+
+.titulo{
+	font-size: 18px;
+	font-weight:bold;
+	color:#333;
+}
+
+
+.select_circular_ponto {
+    width: 340px;
+    font-family: "PT Sans Narrow";
+    font-size: 15px;
+}
+
+.botao{
+	font-size: 15px;
+	color: #FFF;
+	background:#005580;
+	font-weight:bold;
+}
+#comochegar {
+	list-style: none;
+	text-decoration: none;
+}
+
+ /* The Modal (background) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content/Box */
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 65%; /* Could be more or less, depending on screen size */
+}
+
+/* The Close Button */
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+} 		

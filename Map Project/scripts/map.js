@@ -31,15 +31,16 @@ var countCoordsIsNull = 0;
 var posicaoPontoInicial = L.latLng(-22.828016, -47.060825);
 var posicaoCentroUnicamp = L.latLng(-22.821677, -47.065283);
 
+setInterval(function(){
+            buscarPosicaoOnibusAjax();
+            if(statusCoordinates != 3){
+                //showWhereIsBus();
+            }
+            }, 3000);
 
-initialize();
-
-map.addEventListener('zoom', setVisibleMarkers);
-
-setInterval(buscarPosicaoOnibusAjax, 3000);
-
+            
 function insertKML(){
-    fetch('1.kml')
+    fetch("https://www.prefeitura.unicamp.br/apps/site/kml/circular/1.kml?rev=5")
     .then(res => res.text())
     .then(kmltext => {
         // Create new kml overlay
@@ -74,9 +75,30 @@ function initialize(){
     insertKML();
     putBusMarker();
     putIAmHereMarker();
-    buscarPosicaoOnibusAjax();    
+    buscarPosicaoOnibusAjax();   
+    map.addEventListener('zoom', setVisibleMarkers); 
 
 };
+
+function setLocation() {
+
+    var obj = document.getElementsByName("myLocal");
+
+    if (obj[0].checked){	
+        currentLatUsuario = -22.817113;
+        currentLngUsuario = -47.069672;
+    
+    // } else if (obj[1].checked){ 
+        
+    //     if (navigator.geolocation) {
+    //         getPosFromGPS();
+    //     } else {
+    //         document.getElementById("container").innerHTML = '<p align="center">Sinto muito, mas o servi&#231;o de geolocaliza&#231;&#227;o n&#227;o &#233; suportado por seu navegador.</p>';
+    //     }
+    } 
+    
+    initialize();
+}
 
 //Função para colocar o marcador do ônibus
 function putBusMarker() {
@@ -206,11 +228,11 @@ function usuarioEstaPontoInicial(){
 // Função que retorna a distância em metros entre dois pontos
 function distanceAtoB(pointA, pointB){
 			
-    latOrigem = pointA.lat(); 
-    lngOrigem = pointA.lng();
+    latOrigem = pointA.lat; 
+    lngOrigem = pointA.lng;
 
-    latDestino = pointB.lat();
-    lngDestino = pointB.lng();
+    latDestino = pointB.lat;
+    lngDestino = pointB.lng;
 
     
     distancia = 6371000*Math.acos(Math.cos(Math.PI*(90-latDestino)/180)*Math.cos((90-latOrigem)*Math.PI/180)+Math.sin((90-latDestino)*Math.PI/180)*Math.sin((90-latOrigem)*Math.PI/180)*Math.cos((lngOrigem-lngDestino)*Math.PI/180));
@@ -248,4 +270,124 @@ function fixRounding(value) {
     }
 
     return 0;
+}
+
+function showWhereIsBus(){
+			
+			
+    var msg = "";
+
+    msg ='<span style="font-weight: bold">Atualmente o &#244;nibus est&#225; em ' + lastAddress;
+    
+    if (onibusEstaPontoInicial() && lastAddress.indexOf("Sabin") != -1){
+        msg += " (ponto inicial).";
+    }
+
+    msg += '</span>';
+    msg += '<br/><span style="font-weight: bold">A velocidade m�dia atual � ' + currentVelocOnibus.toString() + ' km/h.</span>';
+
+    document.getElementById("endereco").innerHTML = msg;  
+
+}
+
+
+ // Traçar a rota e exibir distância e tempo
+function route(){
+
+    traceRoute = true;
+
+    currentLatOnibus = markerBus.getLatLng().lat;
+    cuurentLngOnibus = markerBus.getLatLng().lng;
+
+    calcularDistanciaTempo = true;
+    msgDistanciaTempo = "<span style=\"font-weight: bold\">";
+
+    idxPontoMaisProximoUsuario = 0;
+    usuarioPosicao = L.latLng(markerIAmHere.getLatLng());
+    distanciaUsuarioAPonto = 9999999999;
+
+    for (i=0; i<arrPontosOnibus.length; i++){
+        if (arrPontosOnibus[i].unidade != 'FICTICIO'){
+            busStop = L.latLng(arrPontosOnibus[i].lat, arrPontosOnibus[i].lng);
+            distanceTmp = distanceAtoB(busStop, usuarioPosicao);
+
+            if (distanceTmp < distanciaUsuarioAPonto) {
+                idxPontoMaisProximoUsuario = i;
+                distanciaUsuarioAPonto = distanceTmp;
+            }
+        }
+    }		
+    
+    // setando o ponto de ônibus mais próximo ao usuário
+    pontoMaisProximoUsuario = L.latLng(arrPontosOnibus[idxPontoMaisProximoUsuario].lat, arrPontosOnibus[idxPontoMaisProximoUsuario].lng);
+
+    if (!onibusEstaPontoInicial() && !usuarioEstaPontoInicial()){
+        
+        //verificando o ponto mais próximo do ônibus e a sua distãncia do ônibus ao ponto.
+        idxPontoMaisProximoOnibus=0;
+        onibusPosicao = L.latLng(markerBus.getLatLng()); 
+        distanciaOnibusAPonto = 9999999999;
+
+        for (i=0; i<arrPontosOnibus.length; i++){
+            if (arrPontosOnibus[i].unidade != 'FICTICIO'){
+                busStop = L.latLng(arrPontosOnibus[i].lat, arrPontosOnibus[i].lng);
+                distanceTmp = distanceAtoB(busStop, onibusPosicao);
+
+                if (distanceTmp < distanciaOnibusAPonto) {
+                    if (i > idxPontoMaisProximoOnibus ) { // para evitar pegar pontos fora da sequência
+                        idxPontoMaisProximoOnibus = i;
+                        distanciaOnibusAPonto = distanceTmp;
+                    }
+                }
+            }
+        }
+        
+        // setando o ponto de ônibus mais próximo do ônibus
+        pontoMaisProximoOnibus = L.latLng(arrPontosOnibus[idxPontoMaisProximoOnibus].lat, arrPontosOnibus[idxPontoMaisProximoOnibus].lng);
+
+        pontoIni = 0;
+        pontoFim = 0;
+        var arrPontosIntermediarios = [];
+
+        if (idxPontoMaisProximoUsuario > idxPontoMaisProximoOnibus){ // ônibus não passou
+
+            // reconstruir pontos intermediários 
+            // (serão usados para forçar a passagem pelos pontos) 
+            pontoIni = idxPontoMaisProximoOnibus + 1;
+            pontoFim = idxPontoMaisProximoUsuario;
+
+            for (i=pontoIni; i<=pontoFim; i++){
+                arrPontosIntermediarios.push({location: L.latLng(arrWaypts[i].getLatLng()), stopover:true});
+            }
+
+        } else if (idxPontoMaisProximoUsuario - idxPontoMaisProximoOnibus == 1) { //ônibus está se aproximando
+            calcularDistanciaTempo = false;
+            msgDistanciaTempo += "O &#244;nibus est&#225; chegando ao ponto " + arrPontosOnibus[idxPontoMaisProximoUsuario].referencia + ".</b>";
+        } 
+        else if (idxPontoMaisProximoUsuario <= idxPontoMaisProximoOnibus) { //ônibus já passou
+            calcularDistanciaTempo = false;
+            msgDistanciaTempo += "O &#244;nibus j&#225; passou pelo ponto mais pr&#243;ximo de voc&#234;.<br />";
+            msgDistanciaTempo += "Experimente arrastar o marcador para um outro ponto.";
+        } 
+        
+    }
+        
+    else {
+        calcularDistanciaTempo = false;
+
+        if (proximoHorarioSaidaOnibus != "") {
+            previsaoSaida = "A sa&#237;da prevista do pr&#243;ximo &#244;nibus ser&#225; &#224;s " +  proximoHorarioSaidaOnibus + " horas.<br />";
+        }
+        
+        if (onibusEstaPontoInicial()){
+            msgDistanciaTempo += "O &#244;nibus est&#225; no ponto inicial.<br />" + previsaoSaida;
+            msgDistanciaTempo += "A previs&#227;o para chegada ao ponto " + arrPontosOnibus[idxPontoMaisProximoUsuario].referencia + " &#224;s " +arrPontoProxHorario[idxPontoMaisProximoUsuario] + " horas.</b>";
+        } if (usuarioEstaPontoInicial()){
+            msgDistanciaTempo += "Voc&#234; est&#225; no ponto inicial." + previsaoSaida;
+        }
+    }
+
+    
+        
+
 }
