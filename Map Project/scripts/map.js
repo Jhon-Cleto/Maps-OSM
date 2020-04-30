@@ -26,7 +26,10 @@ var lastAddress = "";
 
 var countCoordsIsNull = 0;
 
+//var idCircularLinha = 1;
 
+const LINHA_MORADIA = 5;
+const LINHA_NOTURNO = 3;
 
 var posicaoPontoInicial = L.latLng(-22.828016, -47.060825);
 var posicaoCentroUnicamp = L.latLng(-22.821677, -47.065283);
@@ -34,13 +37,43 @@ var posicaoCentroUnicamp = L.latLng(-22.821677, -47.065283);
 setInterval(function(){
             buscarPosicaoOnibusAjax();
             if(statusCoordinates != 3){
-                //showWhereIsBus();
+                showWhereIsBus();
             }
-            }, 3000);
+        }, 3000);
 
-            
+
+// enviando o form
+function submitServico(){
+    frm = window.document.form
+    frm.action = 'map.php'
+    frm.submit()
+}
+
+function getPosFromGPS(){
+    var options = {enableHighAccuracy: true, maximumAge: 0};
+    navigator.geolocation.getCurrentPosition(setLatLng, error, options);
+}
+
+//função para definir latitude e longitude atual do usuário
+function setLatLng(position) {
+    var crd = position.coords;
+    
+    currentLatUsuario = position.coords.latitude;
+    currentLngUsuario = position.coords.longitude; 
+
+    putIAmHereMarker();
+    
+
+}
+
+// função para retornar erro da geolocalizacao
+function error(err) {
+        console.warn('ERROR(' + err.code + '): ' + err.message);
+}
+
+
 function insertKML(){
-    fetch("https://www.prefeitura.unicamp.br/apps/site/kml/circular/1.kml?rev=5")
+    fetch("https://www.prefeitura.unicamp.br/apps/site/kml/circular/"+idCircularLinha+".kml?rev=1")
     .then(res => res.text())
     .then(kmltext => {
         // Create new kml overlay
@@ -73,14 +106,14 @@ function initialize(){
     CartoDB_Voyager.addTo(map);
 
     insertKML();
-    putBusMarker();
+    putBusMarker(idCircularLinha);
     putIAmHereMarker();
     buscarPosicaoOnibusAjax();   
     map.addEventListener('zoom', setVisibleMarkers); 
 
-};
+}
 
-function setLocation() {
+function setLocation(){
 
     var obj = document.getElementsByName("myLocal");
 
@@ -88,20 +121,23 @@ function setLocation() {
         currentLatUsuario = -22.817113;
         currentLngUsuario = -47.069672;
     
-    // } else if (obj[1].checked){ 
+    } else if (obj[1].checked){ 
         
-    //     if (navigator.geolocation) {
-    //         getPosFromGPS();
-    //     } else {
-    //         document.getElementById("container").innerHTML = '<p align="center">Sinto muito, mas o servi&#231;o de geolocaliza&#231;&#227;o n&#227;o &#233; suportado por seu navegador.</p>';
-    //     }
+        if (navigator.geolocation) {
+            getPosFromGPS();
+        } else {
+            document.getElementById("container").innerHTML = '<p align="center">Sinto muito, mas o servi&#231;o de geolocaliza&#231;&#227;o n&#227;o &#233; suportado por seu navegador.</p>';
+        }
     } 
-    
-    initialize();
+
+    if(map == null){
+        initialize();
+    }
+        
 }
 
 //Função para colocar o marcador do ônibus
-function putBusMarker() {
+function putBusMarker(linha) {
     if(markerBus != null){
         markerBus.removeFrom(map);
     }
@@ -144,6 +180,16 @@ function putBusMarker() {
         }
 
         markerBus.addTo(map);
+
+        var centralizarNoOnibus = document.getElementById("chkCentralizarNoOnibus");
+			
+        // centralizar o mapa
+        if (centralizarNoOnibus.checked){		
+            if (!isNaN(markerBus.getLatLng().lat && !isNaN(markerBus.getLatLng().lng))){
+                if (linha != LINHA_MORADIA) {map.setView(markerBus.getLatLng());}
+                else {}
+            }
+        }
     }
 }
 
@@ -189,30 +235,61 @@ function putIAmHereMarker(){
 // Função para buscar e atualizar a posição do ônibus
 function buscarPosicaoOnibusAjax(){
 
-    var idCircularLinha = 1;
-    var idCirculino = 5;
+    if (idCircularLinha != LINHA_MORADIA){
+        //Linhas internas
+        //var idCirculino = 5;
 
-    $.ajax({
-        url : 'https://www.prefeitura.unicamp.br/posicao/site/linha/'+idCircularLinha+'/circulino/'+idCirculino,
-        type : 'GET',
-        dataType: 'json',
-        success: function(data){
-            
-            currentLatOnibus = data.latitude;
-            currentLgnOnibus = data.longitude;
-            currentVelocOnibus = data.velocidadeMedia;
-            statusCoordinates = data.status; 
-            lastAddress = data.endereco;
-            lastSend = data.ultimoEnvio; 
+        $.ajax({
+            url : 'https://www.prefeitura.unicamp.br/posicao/site/linha/'+idCircularLinha+'/circulino/'+idCirculino,
+            type : 'GET',
+            dataType: 'json',
+            success: function(data){
+                
+                currentLatOnibus = data.latitude;
+                currentLgnOnibus = data.longitude;
+                currentVelocOnibus = data.velocidadeMedia;
+                statusCoordinates = data.status; 
+                lastAddress = data.endereco;
+                lastSend = data.ultimoEnvio; 
+    
+                if (currentLatOnibus == null || currentLgnOnibus == null){
+                    countCoordsIsNull++;
+                } else {
+                    countCoordsIsNull = 0;
+                     putBusMarker(idCircularLinha);
+                }
+            } 
+        });
+    }
 
-            if (currentLatOnibus == null || currentLgnOnibus == null){
-                countCoordsIsNull++;
-            } else {
-                countCoordsIsNull = 0;
-                 putBusMarker();
-            }
-        } 
-    });
+    else {
+        //linha moradia
+        $.ajax({
+            url :'https://www.prefeitura.unicamp.br/posicoes/site/linha/'+idCircularLinha,
+            type : 'GET',
+            dataType: 'json',
+            success: function(data){
+
+                 currentLatOnibus = [];
+                 currentLngOnibus = [];
+                 statusCoordinates = [];
+
+                for (var obj in data){
+                    for (i=0; i<data[obj].length; i++){
+                        currentLatOnibus.push(data[obj][i]['latitude']);
+                        currentLngOnibus.push(data[obj][i]['longitude']);
+                        statusCoordinates.push(data[obj][i]['status']);
+                        currentVelocOnibus.push(data[obj][i]['velocidadeMedia']);
+                        lastAddressArray.push(data[obj][i]['endereco']); 
+                    }
+                }   
+
+                putBusMarker(idCircularLinha);
+                
+            } 
+        });
+    }
+
 }
 
 function onibusEstaPontoInicial(){
@@ -251,7 +328,7 @@ function setVisibleMarkers(){
     }
     
     for (i=0; i<arrMarkers.length; i++) {
-        arrMarkers[i].setVisible(value);
+        arrMarkers[i].setOpacity(value);
     }
 
     markerIAmHere.setOpacity(value);
@@ -273,8 +350,7 @@ function fixRounding(value) {
 }
 
 function showWhereIsBus(){
-			
-			
+
     var msg = "";
 
     msg ='<span style="font-weight: bold">Atualmente o &#244;nibus est&#225; em ' + lastAddress;
@@ -284,7 +360,7 @@ function showWhereIsBus(){
     }
 
     msg += '</span>';
-    msg += '<br/><span style="font-weight: bold">A velocidade m�dia atual � ' + currentVelocOnibus.toString() + ' km/h.</span>';
+    msg += '<br/><span style="font-weight: bold">A velocidade média atual é ' + currentVelocOnibus.toString() + ' km/h.</span>';
 
     document.getElementById("endereco").innerHTML = msg;  
 
