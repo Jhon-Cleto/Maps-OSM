@@ -2,9 +2,9 @@
 var traceRoute = false;
 var map;
 
-var markerBus;
+var markerBus = new Array;
 var markerIAmHere;
-var arrMarkers = [];
+//var arrMarkers = [];
 var arrInfoWindows = [];
 var arrWaypts = [];
 var arrPontoProxHorario = [];
@@ -13,14 +13,19 @@ var arrPontosOnibus = [];
 var coordinates;
 var marker;
 
-var currentLatOnibus = -22.827216;
-var currentLgnOnibus = -47.061095;
+let trash = [-22.827216, -47.061095];
+
+var currentLatOnibus = new Array;
+var currentLngOnibus = new Array;
 
 var currentLatUsuario = -22.817113;
 var currentLngUsuario = -47.069672;
 
-var currentVelocOnibus;
-var statusCoordinates = 1;
+var currentVelocOnibus = new Array;
+var statusCoordinates = new Array;
+
+var lastAddressArray = new Array;
+var lastSendArray = new Array;
 var lastSend = "";
 var lastAddress = "";
 
@@ -28,15 +33,18 @@ var countCoordsIsNull = 0;
 
 //var idCircularLinha = 1;
 
+var noturno = false;
+
 const LINHA_MORADIA = 5;
 const LINHA_NOTURNO = 3;
 
 var posicaoPontoInicial = L.latLng(-22.828016, -47.060825);
 var posicaoCentroUnicamp = L.latLng(-22.821677, -47.065283);
+var posicaoCentroUnicampMoradia = L.latLng(-22.819402, -47.073481);
 
 setInterval(function(){
             buscarPosicaoOnibusAjax();
-            if(statusCoordinates != 3){
+            if(statusCoordinates != 3 && idCircularLinha != LINHA_MORADIA){
                 showWhereIsBus();
             }
         }, 3000);
@@ -56,7 +64,7 @@ function getPosFromGPS(){
 
 //função para definir latitude e longitude atual do usuário
 function setLatLng(position) {
-    var crd = position.coords;
+    //var crd = position.coords;
     
     currentLatUsuario = position.coords.latitude;
     currentLngUsuario = position.coords.longitude; 
@@ -73,7 +81,25 @@ function error(err) {
 
 
 function insertKML(){
-    fetch("https://www.prefeitura.unicamp.br/apps/site/kml/circular/"+idCircularLinha+".kml?rev=1")
+
+    let urlKML = "";
+    let option;
+
+    if(idCircularLinha != LINHA_MORADIA){
+        urlKML = 'https://www.prefeitura.unicamp.br/apps/site/kml/circular/'+idCircularLinha+'.kml?rev=5'
+    }
+    else{
+        if(noturno){
+            option = '-noturno';
+        }
+        else{
+            option = '-diurno';
+        }
+        urlKML = "./kmls/5-diurno - 2.kml";
+        //urlKML = 'https://www.prefeitura.unicamp.br/apps/site/kml/circular/' + LINHA_MORADIA + option + '.kml?rev=5';
+    }
+
+    fetch(urlKML)
     .then(res => res.text())
     .then(kmltext => {
         // Create new kml overlay
@@ -88,11 +114,19 @@ function insertKML(){
     });    
 }
 
+function insertBusStops(){
+    for(let i = 0; i < busStops.length; i++){
+        busStops[i].addTo(map);
+    }
+}
 
 function initialize(){
+
+    let center = idCirculino != LINHA_MORADIA ? posicaoCentroUnicamp : posicaoCentroUnicampMoradia;
+
     let options = {
-        center: posicaoCentroUnicamp,
-        zoom: 15
+        center: center,
+        zoom: (idCircularLinha != LINHA_MORADIA ? 15 : 14)
     }
 
     map = L.map('mymap', options);
@@ -106,8 +140,11 @@ function initialize(){
     CartoDB_Voyager.addTo(map);
 
     insertKML();
+    insertBusStops();
+
     putBusMarker(idCircularLinha);
     putIAmHereMarker();
+
     buscarPosicaoOnibusAjax();   
     map.addEventListener('zoom', setVisibleMarkers); 
 
@@ -138,59 +175,64 @@ function setLocation(){
 
 //Função para colocar o marcador do ônibus
 function putBusMarker(linha) {
-    if(markerBus != null){
-        markerBus.removeFrom(map);
-    }
 
-    if(map != null){
-        let busPosition = L.latLng(currentLatOnibus, currentLgnOnibus);
-        
-        let options = {
-            zIndexOffset: 1000,
-            draggable: false
-        };
-        
-        markerBus = L.marker(busPosition, options);
+    for(var i = 0; i < currentLatOnibus.length; i++){
 
-        if(statusCoordinates == 1){
-            let busIcon = L.icon({
-                iconUrl: "./img/bus.png",
-                iconSize: [24, 32]
-            });
-
-            markerBus.setIcon(busIcon);
+        if(markerBus[i] != null){
+            markerBus[i].removeFrom(map);
         }
 
-        else if(statusCoordinates == 2){
-            let busIcon = L.icon({
-                iconUrl: "./img/busEstimatePos.png",
-                iconSize: [24, 32]
-            }); 
+        if(map != null){
+            let busPosition = L.latLng(currentLatOnibus[i], currentLngOnibus[i]);
+            
+            let options = {
+                zIndexOffset: 1000,
+                draggable: false
+            };
+            
+            markerBus[i] = L.marker(busPosition, options);
 
-            markerBus.setIcon(busIcon);           
-        }
+            if(statusCoordinates[i] == 1){
+                let busIcon = L.icon({
+                    iconUrl: "./img/bus.png",
+                    iconSize: [24, 32]
+                });
 
-        else if(statusCoordinates == 3){
-            let busIcon = L.icon({
-                iconUrl: "./img/busNoConnection.png",
-                iconSize: [24, 32]
-            }); 
-
-            markerBus.setIcon(busIcon);                
-        }
-
-        markerBus.addTo(map);
-
-        var centralizarNoOnibus = document.getElementById("chkCentralizarNoOnibus");
-			
-        // centralizar o mapa
-        if (centralizarNoOnibus.checked){		
-            if (!isNaN(markerBus.getLatLng().lat && !isNaN(markerBus.getLatLng().lng))){
-                if (linha != LINHA_MORADIA) {map.setView(markerBus.getLatLng());}
-                else {}
+                markerBus[i].setIcon(busIcon);
             }
+
+            else if(statusCoordinates[i] == 2){
+                let busIcon = L.icon({
+                    iconUrl: "./img/busEstimatePos.png",
+                    iconSize: [24, 32]
+                }); 
+
+                markerBus[i].setIcon(busIcon);           
+            }
+
+            else if(statusCoordinates == 3){
+                let busIcon = L.icon({
+                    iconUrl: "./img/busNoConnection.png",
+                    iconSize: [24, 32]
+                }); 
+
+                markerBus[i].setIcon(busIcon);                
+            }
+
+            markerBus[i].addTo(map);
         }
     }
+
+    var centralizarNoOnibus = document.getElementById("chkCentralizarNoOnibus");
+        
+    // centralizar o mapa
+    if (centralizarNoOnibus.checked){		
+        if (!isNaN(markerBus[0].getLatLng().lat && !isNaN(markerBus[0].getLatLng().lng))){
+            if (linha != LINHA_MORADIA) {map.setView(markerBus[0].getLatLng());}
+            else {}
+        }
+    }
+    
 }
 
 // Função para colocar o marcador do usuário
@@ -245,14 +287,14 @@ function buscarPosicaoOnibusAjax(){
             dataType: 'json',
             success: function(data){
                 
-                currentLatOnibus = data.latitude;
-                currentLgnOnibus = data.longitude;
-                currentVelocOnibus = data.velocidadeMedia;
-                statusCoordinates = data.status; 
-                lastAddress = data.endereco;
+                currentLatOnibus[0] = data.latitude;
+                currentLngOnibus[0] = data.longitude;
+                currentVelocOnibus[0] = data.velocidadeMedia;
+                statusCoordinates[0] = data.status; 
+                lastAddressArray[0] = data.endereco;
                 lastSend = data.ultimoEnvio; 
     
-                if (currentLatOnibus == null || currentLgnOnibus == null){
+                if (currentLatOnibus == null || currentLngOnibus == null){
                     countCoordsIsNull++;
                 } else {
                     countCoordsIsNull = 0;
@@ -293,7 +335,7 @@ function buscarPosicaoOnibusAjax(){
 }
 
 function onibusEstaPontoInicial(){
-    let busPos = L.latLng(currentLatOnibus, currentLgnOnibus);
+    let busPos = L.latLng(currentLatOnibus[0], currentLngOnibus[0]);
     return (distanceAtoB(busPos, posicaoPontoInicial) <= 120);
 }
 
@@ -321,14 +363,14 @@ function setVisibleMarkers(){
 
     var value;
     
-    if (map.getZoom() < 15) {
+    if (map.getZoom() < (idCircularLinha != LINHA_MORADIA ? 15 : 14)) {
         value = 0;
     } else {
         value = 1;
     }
     
-    for (i=0; i<arrMarkers.length; i++) {
-        arrMarkers[i].setOpacity(value);
+    for (i=0; i<busStops.length; i++) {
+        busStops[i].setOpacity(value);
     }
 
     markerIAmHere.setOpacity(value);
@@ -353,14 +395,14 @@ function showWhereIsBus(){
 
     var msg = "";
 
-    msg ='<span style="font-weight: bold">Atualmente o &#244;nibus est&#225; em ' + lastAddress;
+    msg ='<span style="font-weight: bold">Atualmente o &#244;nibus est&#225; em ' + lastAddressArray[0];
     
     if (onibusEstaPontoInicial() && lastAddress.indexOf("Sabin") != -1){
         msg += " (ponto inicial).";
     }
 
     msg += '</span>';
-    msg += '<br/><span style="font-weight: bold">A velocidade média atual é ' + currentVelocOnibus.toString() + ' km/h.</span>';
+    msg += '<br/><span style="font-weight: bold">A velocidade média atual é ' + currentVelocOnibus[0].toString() + ' km/h.</span>';
 
     document.getElementById("endereco").innerHTML = msg;  
 

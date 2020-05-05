@@ -36,5 +36,6 @@ body {
 	font-family: "PT Sans Narrow",Verdana,Geneva,sans-serif;
     font-size: 15px;
     line-height: 18px;
-    margin: 0 0 9px;
+	margin: 0 0 9px;
+	margin-left: 10px;
 }

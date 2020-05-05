@@ -2,7 +2,7 @@ div#mymap{
     width: 630px;
     height: 600px;
     float: left;
-    margin-left: 0px;
+    margin-left: 10px;
     position: relative;
     overflow: hidden;
 }

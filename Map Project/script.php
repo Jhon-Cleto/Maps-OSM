@@ -255,7 +255,7 @@ function construirHTMLFiltroTipoLinha(){
 	foreach ($GLOBALS['arrInputValues'] as $in){
 
 		// pegar a opção selecionada anteriormente
-		if ($GLOBALS['circular'] == $in['linha']  && $GLOBALS['circulino'] == $in['circulino'] ) {
+		if ($GLOBALS['circular'] == $in['linha']  && $GLOBALS['circulino'] == $in['circulino']) {
 			$checked = "checked";
 		} else {
 			$checked = "";
