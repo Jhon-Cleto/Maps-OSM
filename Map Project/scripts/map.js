@@ -43,11 +43,18 @@ var posicaoCentroUnicamp = L.latLng(-22.821677, -47.065283);
 var posicaoCentroUnicampMoradia = L.latLng(-22.819402, -47.073481);
 
 setInterval(function(){
-            buscarPosicaoOnibusAjax();
-            if(statusCoordinates != 3 && idCircularLinha != LINHA_MORADIA){
-                showWhereIsBus();
-            }
-        }, 3000);
+
+        if (countCoordsIsNull >=10){
+            location.reload(true);
+        }
+
+        buscarPosicaoOnibus();
+
+        if(statusCoordinates != 3 && idCircularLinha != LINHA_MORADIA){
+            showWhereIsBus();
+        }
+        
+    }, 3000);
 
 
 // enviando o form
@@ -95,8 +102,11 @@ function insertKML(){
         else{
             option = '-diurno';
         }
-        urlKML = "./kmls/5-diurno - 2.kml"; // Usando arquivo local devido a problema na leitura do kml
+
         //urlKML = 'https://www.prefeitura.unicamp.br/apps/site/kml/circular/' + LINHA_MORADIA + option + '.kml?rev=5';
+
+        urlKML = "./kmls/5-diurno - 2.kml"; // Usando arquivo local devido a problema na leitura do kml
+        
     }
 
     fetch(urlKML) // Instruções do plug-in de kml do leaf-leat
@@ -149,7 +159,7 @@ function initialize(){
     putBusMarker(idCircularLinha);
     putIAmHereMarker();
 
-    buscarPosicaoOnibusAjax();   
+    buscarPosicaoOnibus();   
     map.addEventListener('zoom', setVisibleMarkers); 
 
 }
@@ -280,61 +290,62 @@ function putIAmHereMarker(){
 }
 
 // Função para buscar e atualizar a posição do ônibus
-function buscarPosicaoOnibusAjax(){
+function buscarPosicaoOnibus(){
 
+    //Linhas internas
     if (idCircularLinha != LINHA_MORADIA){
-        //Linhas internas
-        //var idCirculino = 5;
+        
+        let url = 'https://www.prefeitura.unicamp.br/posicao/site/linha/'+idCircularLinha+'/circulino/'+idCirculino;
 
-        $.ajax({
-            url : 'https://www.prefeitura.unicamp.br/posicao/site/linha/'+idCircularLinha+'/circulino/'+idCirculino,
-            type : 'GET',
-            dataType: 'json',
-            success: function(data){
-                
-                currentLatOnibus[0] = data.latitude;
-                currentLngOnibus[0] = data.longitude;
-                currentVelocOnibus[0] = data.velocidadeMedia;
-                statusCoordinates[0] = data.status; 
-                lastAddressArray[0] = data.endereco;
-                lastSend = data.ultimoEnvio; 
-    
-                if (currentLatOnibus == null || currentLngOnibus == null){
-                    countCoordsIsNull++;
-                } else {
-                    countCoordsIsNull = 0;
-                     putBusMarker(idCircularLinha);
-                }
-            } 
-        });
+        fetch(url)
+        .then(res => res.json())
+        .then(data => {
+                        currentLatOnibus[0] = data.latitude;
+                        currentLngOnibus[0] = data.longitude;
+                        currentVelocOnibus[0] = data.velocidadeMedia;
+                        statusCoordinates[0] = data.status; 
+                        lastAddressArray[0] = data.endereco;
+            
+                        if(currentLatOnibus[0] == null || currentLngOnibus[0] == null) {
+                            countCoordsIsNull++;
+                        }
+                        
+                        else {
+                            countCoordsIsNull = 0;
+                            putBusMarker(idCircularLinha);
+                        }
+                    })
+        .catch(error => console.log(error));
     }
 
+    //linha moradia
     else {
-        //linha moradia
-        $.ajax({
-            url :'https://www.prefeitura.unicamp.br/posicoes/site/linha/'+idCircularLinha,
-            type : 'GET',
-            dataType: 'json',
-            success: function(data){
+        
+        let url = 'https://www.prefeitura.unicamp.br/posicoes/site/linha/'+idCircularLinha;
+        
+        fetch(url)
+        .then(res => res.json())
+        .then(data => {
 
-                 currentLatOnibus = [];
-                 currentLngOnibus = [];
-                 statusCoordinates = [];
+                        currentLatOnibus = [];
+                        currentLngOnibus = [];
+                        statusCoordinates = [];
 
-                for (var obj in data){
-                    for (i=0; i<data[obj].length; i++){
-                        currentLatOnibus.push(data[obj][i]['latitude']);
-                        currentLngOnibus.push(data[obj][i]['longitude']);
-                        statusCoordinates.push(data[obj][i]['status']);
-                        currentVelocOnibus.push(data[obj][i]['velocidadeMedia']);
-                        lastAddressArray.push(data[obj][i]['endereco']); 
-                    }
-                }   
+                    
+                        for(let i = 0; i < data.posicoes.length; i++) {
 
-                putBusMarker(idCircularLinha);
-                
-            } 
-        });
+                            currentLatOnibus.push(data.posicoes[i].latitude);
+                            currentLngOnibus.push(data.posicoes[i].longitude);
+                            statusCoordinates.push(data.posicoes[i].status);
+                            currentVelocOnibus.push(data.posicoes[i].velocidadeMedia);
+                            lastAddressArray.push(data.posicoes[i].endereco); 
+                        
+                        }
+
+                        putBusMarker(idCircularLinha);
+                        
+                    })
+        .catch(error => console.log(error));
     }
 
 }
