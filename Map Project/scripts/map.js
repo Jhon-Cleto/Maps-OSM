@@ -70,7 +70,6 @@ function setLatLng(position) {
     currentLngUsuario = position.coords.longitude; 
 
     putIAmHereMarker();
-    
 
 }
 
@@ -79,10 +78,11 @@ function error(err) {
         console.warn('ERROR(' + err.code + '): ' + err.message);
 }
 
-
+// Inserir o KML das rotas no mapa, não funciona normalmente no navegador devido ao bloqueio da política de CORS
+// Resolver o problema de CORS usando uma aba de navegador no-cors (serve apenas para teste)
 function insertKML(){
 
-    let urlKML = "";
+    let urlKML = ""; 
     let option;
 
     if(idCircularLinha != LINHA_MORADIA){
@@ -95,11 +95,11 @@ function insertKML(){
         else{
             option = '-diurno';
         }
-        urlKML = "./kmls/5-diurno - 2.kml";
+        urlKML = "./kmls/5-diurno - 2.kml"; // Usando arquivo local devido a problema na leitura do kml
         //urlKML = 'https://www.prefeitura.unicamp.br/apps/site/kml/circular/' + LINHA_MORADIA + option + '.kml?rev=5';
     }
 
-    fetch(urlKML)
+    fetch(urlKML) // Instruções do plug-in de kml do leaf-leat
     .then(res => res.text())
     .then(kmltext => {
         // Create new kml overlay
@@ -114,23 +114,27 @@ function insertKML(){
     });    
 }
 
+// Inserir os Marcadores de ponto de Ônibus
 function insertBusStops(){
     for(let i = 0; i < busStops.length; i++){
         busStops[i].addTo(map);
     }
 }
 
+// Inicializar mapa e suas camadas auxiliares
 function initialize(){
 
     let center = idCirculino != LINHA_MORADIA ? posicaoCentroUnicamp : posicaoCentroUnicampMoradia;
 
     let options = {
         center: center,
-        zoom: (idCircularLinha != LINHA_MORADIA ? 15 : 14)
+        zoom: (idCircularLinha != LINHA_MORADIA ? 15 : 14),
+        fullscreenControl: true
     }
 
     map = L.map('mymap', options);
 
+    // Camada de Mosaico do mapa
     let CartoDB_Voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: 'abcd',
@@ -150,6 +154,7 @@ function initialize(){
 
 }
 
+// usar a localização real do Usuário no mapa
 function setLocation(){
 
     var obj = document.getElementsByName("myLocal");
@@ -409,13 +414,14 @@ function showWhereIsBus(){
 }
 
 
- // Traçar a rota e exibir distância e tempo
+// Traçar a rota e exibir distância e tempo
+// Esta função ainda não está implementada totalmente, falta interação com um serviço de roteamento
 function route(){
 
     traceRoute = true;
 
-    currentLatOnibus = markerBus.getLatLng().lat;
-    cuurentLngOnibus = markerBus.getLatLng().lng;
+    currentLatOnibus[0] = markerBus.getLatLng().lat;
+    cuurentLngOnibus[0] = markerBus.getLatLng().lng;
 
     calcularDistanciaTempo = true;
     msgDistanciaTempo = "<span style=\"font-weight: bold\">";
