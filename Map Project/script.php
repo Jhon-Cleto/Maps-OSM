@@ -131,10 +131,10 @@ while ($row1 = pg_fetch_array($resultPontosCircular)){
 			$cobertura = "Este ponto possui cobertura.";
         }
         
-        // conteudo do balao de informa��o de cada ponto
-		$content = "<table border=\"0\" width=\"350\">" . "<tr>" . "<td colspan=\"2\" align=\"center\"><b>" . $row1 ['unidade'] . " </b><br/></td>" . "</tr> " . "<tr>" . "<td  align=\"center\">" . $row1 ['referencia'] . "</td>" . "</tr> " . "</tr> " . "<tr>" . "<td  align=\"center\"><img src=\"$imageFile\" style=\"max-width: 80%; max-height: 80%;\"></td>" . "</tr> " . "<tr>" . "<td  align=\"center\"><b>Hor�rios do " . $row1 ['descricao'] . "</b></td>" . "</tr> " . "<tr>" . "<td>" . $horario . "</td>" . "</tr> " . "<tr>" . "<td>" . $cobertura . "</td>" . "</tr> " . "<tr>" . "<td><img src=img/cadeirante.jpg style=\"width: 15px; height: 15px;\"> <font color=\"#0000FF\">Viagens com �nibus adaptado para deficientes f�sicos.</font></td>" . "</tr> " . "</table>";
+        // conteudo do balao de informação de cada ponto
+		$content = "<table border=\"0\" width=\"350\">" . "<tr>" . "<td colspan=\"2\" align=\"center\"><b>" . $row1 ['unidade'] . " </b><br/></td>" . "</tr> " . "<tr>" . "<td  align=\"center\">" . $row1 ['referencia'] . "</td>" . "</tr> " . "</tr> " . "<tr>" . "<td  align=\"center\"><img src=\"$imageFile\" style=\"max-width: 80%; max-height: 80%;\"></td>" . "</tr> " . "<tr>" . "<td  align=\"center\"><b>Horários do " . $row1 ['descricao'] . "</b></td>" . "</tr> " . "<tr>" . "<td>" . $horario . "</td>" . "</tr> " . "<tr>" . "<td>" . $cobertura . "</td>" . "</tr> " . "<tr>" . "<td><img src=img/cadeirante.jpg style=\"width: 15px; height: 15px;\"> <font color=\"#0000FF\">Viagens com ônibus adaptado para deficientes físicos.</font></td>" . "</tr> " . "</table>";
 
-		// preparando o bal�o de informa��o
+		// preparando o balão de informação
 		$scriptJS .= "infowindow$idMarker.setContent('$content');";        
     
 		// preparando as coordenadas

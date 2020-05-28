@@ -4,7 +4,7 @@ var map;
 
 var markerBus = new Array;
 var markerIAmHere;
-//var arrMarkers = [];
+var busMarkers = [];
 var arrInfoWindows = [];
 var arrWaypts = [];
 var arrPontoProxHorario = [];
@@ -103,9 +103,9 @@ function insertKML(){
             option = '-diurno';
         }
 
-        //urlKML = 'https://www.prefeitura.unicamp.br/apps/site/kml/circular/' + LINHA_MORADIA + option + '.kml?rev=5';
+        urlKML = 'https://www.prefeitura.unicamp.br/apps/site/kml/circular/' + LINHA_MORADIA + option + '.kml?rev=5';
 
-        urlKML = "./kmls/5-diurno - 2.kml"; // Usando arquivo local devido a problema na leitura do kml
+        //urlKML = "./kmls/5-diurno - 2.kml"; // Usando arquivo local devido a problema na leitura do kml
         
     }
 
@@ -131,6 +131,96 @@ function insertBusStops(){
     }
 }
 
+function initBusStops(){
+    url = 'https://www.prefeitura.unicamp.br/posicao/app/pontosCircular';
+
+    let horariosPts = new Array;
+    
+    fetch(url)
+    .then(res => res.json())
+    .then(res => res.pontos)
+    .then(res => deputaPontos(res))
+    
+}
+
+function deputaPontos(pontos){
+    
+    let ponto = pontos[0];
+    let arrHorarios = new Array;
+    
+    for(let i = 0; i < pontos.length; i++){
+
+        //console.log(pontos[i]);
+        
+        if(pontos[i].idCircularLinha == idCircularLinha){
+            if(pontos[i].idCircularPonto != ponto.idCircularPonto){
+                createBusStop(ponto, arrHorarios);
+                ponto = pontos[i];
+                arrHorarios = new Array;
+            }
+
+            arrHorarios.push(pontos[i].horario); // Não registra o último ponto
+        }
+
+        // Sabendo que o Array vem em ordem crescente de linhas de ônibus
+        else if(pontos[i].idCircularLinha > idCircularLinha){
+            createBusStop(ponto, arrHorarios);
+            return;
+        }    
+    }
+}
+
+function createBusStop(ponto, horariosPonto){
+
+    let coordenadas = L.latLng(ponto.latitude, ponto.longitude);
+   
+    let icon = L.icon({
+        iconUrl: "./img/buildings.png",
+        iconSize: [20,32]
+    });
+
+    let options = {
+            title: ponto.referencia,
+            icon: icon,
+            zIndexOffset: 900, // Posição z abaixo a do ônibus
+            draggable: false
+    };        
+    
+    let busStop = L.marker(coordenadas, options);
+
+    let popup = L.popup({maxWidth: 350});
+
+    let cobertura = "";
+    if(ponto.isCobertura){
+        cobertura = "Este ponto possui cobertura.";
+    }
+
+    let horarios = "";
+    let horario;
+
+    for(let i = 0; i < horariosPonto.length; i++){
+        horario = horariosPonto[i].slice(0,5);
+        horarios += horario;
+        if(ponto.isOnibusAdaptado){
+            horarios += "<img src=img/cadeirante.jpg style=\"width: 13px; height: 13px; margin-left: 3px;\">";
+        }
+        if(i != horariosPonto.length -1){
+            horarios += " - ";
+        }
+        
+    }
+
+    let content = "<table border=\"0\" width=\"350\" style=\"font-size: 13px;\">" + "<tr>" + "<td colspan=\"2\" align=\"center\" style=\"font-size: 15px;\"><b>" + ponto.unidade + " </b><br/></td>" + "</tr> " + "<tr>" + "<td  align=\"center\">" + ponto.referencia + "</td>" + "</tr> " + "</tr> " + "<tr>" + "<td  align=\"center\"><img src=\"./img/semImagem.png\" style=\"max-width: 80%; max-height: 80%;\"></td>" + "</tr> " + "<tr>" + "<td  align=\"center\" ><b>Horários do " + ponto.descricao + "</b></td>" + "</tr> " + "<tr>" + "<td  align=\"center\">" + horarios + "</td>" + "</tr> " + "<tr>" + "<td  align=\"center\" style=\"font-weight: bold;\">" + cobertura + "</td>" + "</tr> " + "<tr>" + "<td  align=\"center\" style=\"font-size: 13px;\"><img src=img/cadeirante.jpg style=\"width: 15px; height: 15px;\"> <font color=\"#0000FF\">Viagens com ônibus adaptado para deficientes físicos.</font></td>" + "</tr> " + "</table>";
+
+    popup.setContent(content);
+
+    busStop.bindPopup(popup);
+    busStop.addTo(map);
+    busMarkers.push(busStop);
+}
+
+
+
 // Inicializar mapa e suas camadas auxiliares
 function initialize(){
 
@@ -154,7 +244,7 @@ function initialize(){
     CartoDB_Voyager.addTo(map);
 
     insertKML();
-    insertBusStops();
+    initBusStops();
 
     putBusMarker(idCircularLinha);
     putIAmHereMarker();
@@ -385,8 +475,8 @@ function setVisibleMarkers(){
         value = 1;
     }
     
-    for (i=0; i<busStops.length; i++) {
-        busStops[i].setOpacity(value);
+    for (i=0; i<busMarkers.length; i++) {
+        busMarkers[i].setOpacity(value);
     }
 
     markerIAmHere.setOpacity(value);

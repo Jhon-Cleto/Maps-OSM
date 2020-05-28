@@ -42,7 +42,7 @@
         $display2 = 'inline';
     }
     
-    $scriptJS = "var busStops = new Array;\n"; // Array que contém os pontos de ônibus
+/*     $scriptJS = "var busStops = new Array;\n"; // Array que contém os pontos de ônibus
 
     if($circular != 6){
         $nomeArquivo = "Rotas/pontos_rota$circular.txt";
@@ -57,7 +57,7 @@
     
         fclose($arquivo);
     
-    }
+    } */
 
 
 ?>
@@ -68,7 +68,7 @@
     var idCircularLinha = <?php print $circular?>;
     var idCirculino = <?php print $circulino?>;
 
-    function createBusStop(position){
+/*     function createBusStop(position){
 
         let icon = L.icon({
                         iconUrl: "./img/buildings.png",
@@ -89,6 +89,6 @@
         return busStop;
     }
 
-    <?php echo $scriptJS ?>
+    <?php echo $scriptJS ?> */
 
 </script>
