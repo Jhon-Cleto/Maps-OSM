@@ -13,8 +13,6 @@ var arrPontosOnibus = [];
 var coordinates;
 var marker;
 
-let trash = [-22.827216, -47.061095];
-
 var currentLatOnibus = new Array;
 var currentLngOnibus = new Array;
 
@@ -93,7 +91,9 @@ function insertKML(){
     let option;
 
     if(idCircularLinha != LINHA_MORADIA){
-        urlKML = 'https://www.prefeitura.unicamp.br/apps/site/kml/circular/'+idCircularLinha+'.kml?rev=5'
+        //urlKML = 'https://www.prefeitura.unicamp.br/apps/site/kml/circular/'+idCircularLinha+'.kml?rev=5';
+        
+        urlKML = './kmls/'+idCircularLinha+'.kml'; // Usando arquivo local
     }
     else{
         if(noturno){
@@ -103,9 +103,9 @@ function insertKML(){
             option = '-diurno';
         }
 
-        urlKML = 'https://www.prefeitura.unicamp.br/apps/site/kml/circular/' + LINHA_MORADIA + option + '.kml?rev=5';
+        //urlKML = 'https://www.prefeitura.unicamp.br/apps/site/kml/circular/' + LINHA_MORADIA + option + '.kml?rev=5';
 
-        //urlKML = "./kmls/5-diurno - 2.kml"; // Usando arquivo local devido a problema na leitura do kml
+        urlKML = "./kmls/5-diurno.kml"; // Usando arquivo local devido a problema na leitura do kml
         
     }
 
@@ -210,7 +210,7 @@ function createBusStop(ponto, horariosPonto){
         
     }
 
-    let content = "<table border=\"0\" width=\"350\" style=\"font-size: 13px;\">" + "<tr>" + "<td colspan=\"2\" align=\"center\" style=\"font-size: 15px;\"><b>" + ponto.unidade + " </b><br/></td>" + "</tr> " + "<tr>" + "<td  align=\"center\">" + ponto.referencia + "</td>" + "</tr> " + "</tr> " + "<tr>" + "<td  align=\"center\"><img src=\"./img/semImagem.png\" style=\"max-width: 80%; max-height: 80%;\"></td>" + "</tr> " + "<tr>" + "<td  align=\"center\" ><b>Horários do " + ponto.descricao + "</b></td>" + "</tr> " + "<tr>" + "<td  align=\"center\">" + horarios + "</td>" + "</tr> " + "<tr>" + "<td  align=\"center\" style=\"font-weight: bold;\">" + cobertura + "</td>" + "</tr> " + "<tr>" + "<td  align=\"center\" style=\"font-size: 13px;\"><img src=img/cadeirante.jpg style=\"width: 15px; height: 15px;\"> <font color=\"#0000FF\">Viagens com ônibus adaptado para deficientes físicos.</font></td>" + "</tr> " + "</table>";
+    let content = "<table border=\"0\" width=\"350\" style=\"font-size: 13px;\">" + "<tr>" + "<td colspan=\"2\" align=\"center\" style=\"font-size: 15px;\"><b>" + ponto.unidade + " </b><br/></td>" + "</tr> " + "<tr>" + "<td  align=\"center\">" + ponto.referencia + "</td>" + "</tr> " + "</tr> " + "<tr>" + "<td  align=\"center\"><img src=\"./img/semImagem.png\" style=\"max-width: 80%; max-height: 80%;\"></td>" + "</tr> " + "<tr>" + "<td  align=\"center\" ><b>Horários do " + ponto.descricao + "</b></td>" + "</tr> " + "<tr>" + "<td  align=\"center\">" + horarios + "</td>" + "</tr> " + "<tr>" + "<td  align=\"center\" style=\"font-weight: bold;\">" + cobertura + "</td>" + "</tr> " + "<tr>" + "<td  align=\"center\" style=\"font-size: 13px;\"><img src=img/cadeirante.jpg style=\"width: 15px; height: 15px;\"> <font color=\"#0000FF\">Viagens com &#244;nibus adaptado para deficientes f&#237;sicos</font></td>" + "</tr> " + "</table>";
 
     popup.setContent(content);
 

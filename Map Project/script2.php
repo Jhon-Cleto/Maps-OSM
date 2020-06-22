@@ -68,27 +68,4 @@
     var idCircularLinha = <?php print $circular?>;
     var idCirculino = <?php print $circulino?>;
 
-/*     function createBusStop(position){
-
-        let icon = L.icon({
-                        iconUrl: "./img/buildings.png",
-                        iconSize: [20,32]
-                        });
-
-        let options = {
-                        icon: icon,
-                        zIndexOffset: 900, // Posição z abaixo a do ônibus
-                        draggable: false
-                    };
-
-        let busStop = L.marker(position, options);
-        
-        let popup = L.popup().setContent('<p> <b>Olá! Eu sou um Ponto de Ônibus.</b></p>');
-        busStop.bindPopup(popup);
-
-        return busStop;
-    }
-
-    <?php echo $scriptJS ?> */
-
 </script>

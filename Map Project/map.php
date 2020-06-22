@@ -1,7 +1,7 @@
 
 
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 
     <head>
     
@@ -16,7 +16,7 @@
 		<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
 		
         <link rel="stylesheet" href="styles/leaflet.fullscreen.css">
-        <script src="scripts/leaflet.fullscreen.min.js"></script>
+        <script src="./scripts/leaflet.fullscreen.min.js"></script>
 
         <link rel="stylesheet" href="styles/style.css">
         <link href="styles/mapa.css" rel="stylesheet" type="text/css" />
