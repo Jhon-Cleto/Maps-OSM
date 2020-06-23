@@ -24,13 +24,13 @@
         
         <?php include('script2.php'); ?>
 
-        <script src="./scripts/L.KML.js"></script>
-        <script src="./scripts/map.js"></script>
+        <script type="text/javascript" charset="UTF-8" src="./scripts/L.KML.js"></script>
+        <script type="text/javascript" charset="UTF-8" src="./scripts/map.js"></script>
         
 
     </head>
 
-    <body onload="setLocation();">
+    <body onload="initialize();">
         
         <br/>
 	
@@ -88,25 +88,19 @@
                             <input type="radio" name="myLocal" id="myLocal" onclick="setLocation();"
 						            value="1" <?php if($meuLocal==1){echo "CHECKED";}?>>Minha
                                         localiza&#231;&#227;o (apenas para dispositivos com GPS) <br/> <br/>
-                            
+
                         <strong class="mapa_titulo_2">Tipo de Linha</strong><br/>
+                        
+                        <div id="filtroLinha">
 
-                            <input type="radio" onchange="submitServico()" id="tipoLinha" name="tipoLinha" value="1;5" <?php echo $checked1 ?>>
-                                <span style="font-weight: bold; color: #0097C9">Circular 1 (sentido anti-horário) - Ônibus 1<img src=img/cadeirante.jpg style="width: 13px; height: 13px; margin-left: 3px;"></span>
-                                <br/>
+                        </div>
 
-                            <input type="radio" onchange="submitServico()" id="tipoLinha" name="tipoLinha" value="2;6" <?php echo $checked2 ?>>
-                                <span style="font-weight: bold; color: #7C7373">Circular 2 - via FEC (sentido horário)<img src=img/cadeirante.jpg style="width: 13px; height: 13px; margin-left: 3px;"></span>
-                                <br/>
-
-                            <input type="radio" onchange="submitServico()" id="tipoLinha" name="tipoLinha" value="5;0" <?php echo $checked3 ?>>
-                                <span style="font-weight: bold; color: #1267FF">Ônibus Moradia</span>
-                                <br/><br/>
+                        <br/><br/>
 
                         <img src="img/cadeirante.jpg"style="width: 15px; height: 15px;"> <font color="#0000FF">Viagens com &#244;nibus adaptado para deficientes f&#237;sicos</font>
                         <br/><br/>
 
-                        <div id="rotasMoradia" style="display: <?php echo  $display2?>"> Rotas especiais Moradia: <br/>
+                        <div id="rotasMoradia" style="display: none;"> Rotas especiais Moradia: <br/>
 
 						    <div id="legendaDiurno" style="display: inline">
                         			<img src="img/rotaAmarelo.png">&#193;rea da Sa&#250;de (#)<br/>
@@ -120,7 +114,7 @@
                             
 					    </div>
 
-                        <div id="divOptions" style="display: <?php echo  $display1?>">
+                        <div id="divOptions">
     					    <strong class="mapa_titulo_2">Opções</strong><br />
     					    <input type="checkbox" id="chkCentralizarNoOnibus">Centralizar no ônibus<br/><br/><br/>
 					    </div>

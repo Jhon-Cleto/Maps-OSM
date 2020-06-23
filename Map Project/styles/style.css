@@ -6,4 +6,18 @@ div#mymap{
     position: relative;
     overflow: hidden;
 }
-  
+
+label#lbl-linha1{
+    color: #0097C9;
+    font-weight: bold;
+}
+
+label#lbl-linha2{
+    color: #7C7373;
+    font-weight: bold;
+}
+
+label#lbl-linha5{
+    color: #1267FF;
+    font-weight: bold;
+}

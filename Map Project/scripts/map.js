@@ -29,8 +29,6 @@ var lastAddress = "";
 
 var countCoordsIsNull = 0;
 
-//var idCircularLinha = 1;
-
 var noturno = false;
 
 const LINHA_MORADIA = 5;
@@ -56,10 +54,38 @@ setInterval(function(){
 
 
 // enviando o form
-function submitServico(){
-    frm = window.document.form
-    frm.action = 'map.php'
-    frm.submit()
+function submitService(stringValue){
+
+    let values = stringValue.split(';');
+    idCircularLinha = values[0];
+    idCirculino = values[1];
+
+    resetMap();
+    
+    initMap();
+}
+
+function resetMap(){
+
+    map.remove();
+
+    document.getElementById("endereco").innerHTML = "";
+    markerBus = new Array;
+    currentLatOnibus = new Array;
+    currentLngOnibus = new Array;
+
+    const divOpt = document.querySelector("#divOptions");
+    const divRM = document.querySelector("#rotasMoradia");
+
+    if(idCircularLinha == LINHA_MORADIA){
+        divOpt.style.display = 'none';
+        divRM.style.display = 'inline';
+    }
+    else{
+        divOpt.style.display ='inline';
+        divRM.style.display = 'none'; 
+    }
+ 
 }
 
 function getPosFromGPS(){
@@ -124,17 +150,9 @@ function insertKML(){
     });    
 }
 
-// Inserir os Marcadores de ponto de Ônibus
-function insertBusStops(){
-    for(let i = 0; i < busStops.length; i++){
-        busStops[i].addTo(map);
-    }
-}
-
+// Criação dos Marcadores de Pontos de ônibus
 function initBusStops(){
     url = 'https://www.prefeitura.unicamp.br/posicao/app/pontosCircular';
-
-    let horariosPts = new Array;
     
     fetch(url)
     .then(res => res.json())
@@ -149,8 +167,6 @@ function deputaPontos(pontos){
     let arrHorarios = new Array;
     
     for(let i = 0; i < pontos.length; i++){
-
-        //console.log(pontos[i]);
         
         if(pontos[i].idCircularLinha == idCircularLinha){
             if(pontos[i].idCircularPonto != ponto.idCircularPonto){
@@ -219,10 +235,78 @@ function createBusStop(ponto, horariosPonto){
     busMarkers.push(busStop);
 }
 
+function searchInput(){
+    const url = 'https://www.prefeitura.unicamp.br/posicao/app/circulinosAtuando';
 
+    fetch(url)
+    .then(res => res.json())
+    .then(res => res.circulinos)
+    .then(res => createInputs(res));
+}
+
+function createInputs(linhas){
+    const fLinha = document.querySelector('#filtroLinha');
+    
+    fLinha.innerHTML = "";
+
+    for(let i  = 0; i < linhas.length; i++){   
+        insetInput(linhas[i], fLinha);
+    }
+}
+
+function insetInput(linha, form){
+
+    const input = document.createElement("input");
+    const label = document.createElement('label');
+    const div = document.createElement('div');
+    const img = document.createElement('img');
+
+    input.type = 'radio';
+    input.id = 'tipoLinha'+linha.idCirculino;
+    input.name = 'tipoLinha';
+    input.value = `${linha.idCircular};${linha.idCirculino}`;
+    input.addEventListener("change", function(){submitService(this.value);});
+
+    if(linha.idCircular == 1 && linha.idCirculino == 5){
+        input.checked = true;
+    }
+
+    label.htmlFor = input.id;
+    label.id = 'lbl-'+'linha'+linha.idCircular;
+    label.textContent = (linha.idCircular == LINHA_MORADIA ? " Ônibus ": " ") + linha.descricao;
+
+    if(linha.idCircular != LINHA_MORADIA){
+        
+        img.src = 'img/cadeirante.jpg';
+        img.style = "width: 13px; height: 13px; margin-left: 3px;";
+    
+        label.appendChild(img);    
+    }
+
+
+    div.className = 'linhas';
+    div.appendChild(input);
+    div.appendChild(label);
+
+    form.appendChild(div);
+
+
+}
+
+function initialize(){
+
+    searchInput();
+
+    setLocation();
+
+    if (map == null){
+        initMap();
+    }
+    
+}
 
 // Inicializar mapa e suas camadas auxiliares
-function initialize(){
+function initMap(){
 
     let center = idCirculino != LINHA_MORADIA ? posicaoCentroUnicamp : posicaoCentroUnicampMoradia;
 
@@ -273,7 +357,7 @@ function setLocation(){
     } 
 
     if(map == null){
-        initialize();
+        initMap();
     }
         
 }
