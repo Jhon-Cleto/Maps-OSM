@@ -5,6 +5,7 @@ div#mymap{
     margin-left: 10px;
     position: relative;
     overflow: hidden;
+    z-index: 0;
 }
 
 label#lbl-linha1{

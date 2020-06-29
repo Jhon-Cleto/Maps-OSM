@@ -26,7 +26,7 @@
 
         <script type="text/javascript" charset="UTF-8" src="./scripts/L.KML.js"></script>
         <script type="text/javascript" charset="UTF-8" src="./scripts/map.js"></script>
-        
+        <script src="/scripts/jquery-3.5.1.min.js"></script>       
 
     </head>
 
@@ -143,7 +143,16 @@
 
         <div id="endereco" class="mapa_texto"
             style="float: left; margin-left: 10px; height: 50px; width: 630px;">
-        </div>   
+        </div>
+        
+        <div id="myModal" class="modal" style="width: 100%; display: none;">
+            <div class="modal-content" style="width: 75%;">
+                <span class="close">&times;</span>
+                <script>refreshDivModal();</script>
+                <div id="modalContentQualCircular">
+                </div>
+            </div>
+	    </div>           
              
     </body>
 </html>

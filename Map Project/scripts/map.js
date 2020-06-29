@@ -302,6 +302,8 @@ function initialize(){
     if (map == null){
         initMap();
     }
+
+    eventQualCircularPegar();
     
 }
 
@@ -455,10 +457,11 @@ function putIAmHereMarker(){
         markerIAmHere.addEventListener('dragend', function(){
                                         currentLatUsuario = markerIAmHere.getLatLng().lat;
                                         currentLngUsuario = markerIAmHere.getLatLng().lng;
-                                        });  
+                                        refreshDivModal();
+                                    });  
         
         markerIAmHere.addTo(map);
-
+        refreshDivModal();                                
 
     }
 }
@@ -598,6 +601,41 @@ function showWhereIsBus(){
 
 }
 
+function refreshDivModal(){
+    let link = "https://www.prefeitura.unicamp.br/apps/site/qualCircular.php?currentLatUsuario="+currentLatUsuario+"&currentLngUsuario="+currentLngUsuario;
+
+    fetch(link)
+    .then(res => res.text())
+    .then(text => refreshModal(text))
+}
+
+function refreshModal(text){
+    const divModal = document.querySelector('#modalContentQualCircular');
+    divModal.innerHTML = text;
+}
+
+function eventQualCircularPegar() {
+
+    const modal = document.querySelector('#myModal'); 
+    const btn = document.querySelector('#qualCircular');
+    const closeSpan = document.querySelector('.close');
+
+    btn.addEventListener('click', function(){
+        modal.style.display = 'block';
+
+    });
+    
+    closeSpan.addEventListener('click', function(){
+        modal.style.display = 'none';
+    })
+
+    window.onclick = function(event){
+        if(event.target == modal){
+            modal.style.display = 'none';
+        }
+    }
+
+}
 
 // Traçar a rota e exibir distância e tempo
 // Esta função ainda não está implementada totalmente, falta interação com um serviço de roteamento
