@@ -5,13 +5,9 @@ var map;
 var markerBus = new Array;
 var markerIAmHere;
 var busMarkers = [];
-var arrInfoWindows = [];
 var arrWaypts = [];
 var arrPontoProxHorario = [];
 var arrPontosOnibus = [];
-
-var coordinates;
-var marker;
 
 var currentLatOnibus = new Array;
 var currentLngOnibus = new Array;
@@ -44,14 +40,23 @@ setInterval(function(){
             location.reload(true);
         }
 
+        checkHorario();
+
         buscarPosicaoOnibus();
 
         if(statusCoordinates != 3 && idCircularLinha != LINHA_MORADIA){
             showWhereIsBus();
         }
+
+
         
     }, 3000);
 
+
+function checkHorario(){
+    let now = new Date();
+    noturno = (now.getHours() >= 18);
+}
 
 // enviando o form
 function submitService(stringValue){
@@ -80,8 +85,23 @@ function resetMap(){
     if(idCircularLinha == LINHA_MORADIA){
         divOpt.style.display = 'none';
         divRM.style.display = 'inline';
+
+        const legendaDiurno = document.querySelector('#legendaDiurno');
+        const legendaNoturno = document.querySelector('#legendaNoturno');
+
+        if(noturno) {
+            legendaDiurno.style.display = 'none';
+            legendaNoturno.style.display = 'inline';
+        }
+        else {
+            legendaDiurno.style.display = 'inline';
+            legendaNoturno.style.display = 'none';            
+        }
+
     }
+
     else{
+
         divOpt.style.display ='inline';
         divRM.style.display = 'none'; 
     }
@@ -117,9 +137,9 @@ function insertKML(){
     let option;
 
     if(idCircularLinha != LINHA_MORADIA){
-        //urlKML = 'https://www.prefeitura.unicamp.br/apps/site/kml/circular/'+idCircularLinha+'.kml?rev=5';
+        urlKML = 'https://www.prefeitura.unicamp.br/apps/site/kml/circular/'+idCircularLinha+'.kml?rev=5';
         
-        urlKML = './kmls/'+idCircularLinha+'.kml'; // Usando arquivo local
+        //urlKML = './kmls/'+idCircularLinha+'.kml'; // Usando arquivo local
     }
     else{
         if(noturno){
@@ -129,9 +149,9 @@ function insertKML(){
             option = '-diurno';
         }
 
-        //urlKML = 'https://www.prefeitura.unicamp.br/apps/site/kml/circular/' + LINHA_MORADIA + option + '.kml?rev=5';
+        urlKML = 'https://www.prefeitura.unicamp.br/apps/site/kml/circular/' + LINHA_MORADIA + option + '.kml?rev=5';
 
-        urlKML = "./kmls/5-diurno.kml"; // Usando arquivo local devido a problema na leitura do kml
+        //urlKML = "./kmls/5-diurno.kml"; // Usando arquivo local devido a problema na leitura do kml
         
     }
 
@@ -296,7 +316,7 @@ function insetInput(linha, form){
 function initialize(){
 
     searchInput();
-
+    checkHorario();
     setLocation();
 
     if (map == null){
@@ -357,6 +377,8 @@ function setLocation(){
             document.getElementById("container").innerHTML = '<p align="center">Sinto muito, mas o servi&#231;o de geolocaliza&#231;&#227;o n&#227;o &#233; suportado por seu navegador.</p>';
         }
     } 
+
+    putIAmHereMarker();
 
     if(map == null){
         initMap();
@@ -605,13 +627,20 @@ function refreshDivModal(){
     let link = "https://www.prefeitura.unicamp.br/apps/site/qualCircular.php?currentLatUsuario="+currentLatUsuario+"&currentLngUsuario="+currentLngUsuario;
 
     fetch(link)
-    .then(res => res.text())
-    .then(text => refreshModal(text))
+    .then(res => res.arrayBuffer())
+    .then(buffer => decodeString(buffer));
+}
+
+function decodeString(buffer) {
+    let decoder = new TextDecoder('iso-8859-1');
+    let text = decoder.decode(buffer);
+    refreshModal(text);
 }
 
 function refreshModal(text){
     const divModal = document.querySelector('#modalContentQualCircular');
     divModal.innerHTML = text;
+    myModalSubmit();
 }
 
 function eventQualCircularPegar() {
@@ -622,6 +651,7 @@ function eventQualCircularPegar() {
 
     btn.addEventListener('click', function(){
         modal.style.display = 'block';
+        document.getElementById("resultadoQualCircular").innerHTML = ''; 
 
     });
     
@@ -635,6 +665,19 @@ function eventQualCircularPegar() {
         }
     }
 
+}
+
+function myModalSubmit() {
+    const frmBusca = document.querySelector('#frmBusca');
+    frmBusca.addEventListener('submit', e => {
+        e.preventDefault();
+        fetch('qualCircular_busca.php',{method: 'POST'})
+        .then(res => res.text())
+        .then(text => {
+            const resQbusca = document.querySelector('#resultadoQualCircular');
+            resQbusca.innerHTML = text;
+        });
+    });
 }
 
 // Traçar a rota e exibir distância e tempo
