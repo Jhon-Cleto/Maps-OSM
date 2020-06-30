@@ -26,6 +26,8 @@ var lastAddress = "";
 var countCoordsIsNull = 0;
 
 var noturno = false;
+var idCircularLinha;
+var idCirculino;
 
 const LINHA_MORADIA = 5;
 const LINHA_NOTURNO = 3;
@@ -36,20 +38,21 @@ var posicaoCentroUnicampMoradia = L.latLng(-22.819402, -47.073481);
 
 setInterval(function(){
 
-        if (countCoordsIsNull >=10){
-            location.reload(true);
+        if(map != null){
+
+            if (countCoordsIsNull >=10){
+                location.reload(true);
+            }
+    
+            checkHorario();
+    
+            buscarPosicaoOnibus();
+    
+            if(statusCoordinates != 3 && idCircularLinha != LINHA_MORADIA){
+                showWhereIsBus();
+            }
         }
 
-        checkHorario();
-
-        buscarPosicaoOnibus();
-
-        if(statusCoordinates != 3 && idCircularLinha != LINHA_MORADIA){
-            showWhereIsBus();
-        }
-
-
-        
     }, 3000);
 
 
@@ -231,7 +234,7 @@ function createBusStop(ponto, horariosPonto){
         cobertura = "Este ponto possui cobertura.";
     }
 
-    let horarios = "";
+    let horarios = (horariosPonto.length > 0) ? "" : "Este ponto não possui horários na próxima 1 hora.";
     let horario;
 
     for(let i = 0; i < horariosPonto.length; i++){
@@ -255,7 +258,10 @@ function createBusStop(ponto, horariosPonto){
     busMarkers.push(busStop);
 }
 
-function searchInput(){
+function searchInput() {
+
+    checkHorario();
+
     const url = 'https://www.prefeitura.unicamp.br/posicao/app/circulinosAtuando';
 
     fetch(url)
@@ -272,6 +278,8 @@ function createInputs(linhas){
     for(let i  = 0; i < linhas.length; i++){   
         insetInput(linhas[i], fLinha);
     }
+
+    initialize();
 }
 
 function insetInput(linha, form){
@@ -289,6 +297,10 @@ function insetInput(linha, form){
 
     if(linha.idCircular == 1 && linha.idCirculino == 5){
         input.checked = true;
+        defineIds(linha.idCircular, linha.idCirculino);
+    } else if(noturno && linha.idCircular == LINHA_NOTURNO){
+        input.checked = true;
+        defineIds(linha.idCircular, linha.idCirculino);
     }
 
     label.htmlFor = input.id;
@@ -313,10 +325,13 @@ function insetInput(linha, form){
 
 }
 
+function defineIds(idLinha, idBus){
+    idCircularLinha = idLinha;
+    idCirculino = idBus;
+}
+
 function initialize(){
 
-    searchInput();
-    checkHorario();
     setLocation();
 
     if (map == null){
@@ -423,7 +438,7 @@ function putBusMarker(linha) {
                 markerBus[i].setIcon(busIcon);           
             }
 
-            else if(statusCoordinates == 3){
+            else if(statusCoordinates[i] == 3){
                 let busIcon = L.icon({
                     iconUrl: "./img/busNoConnection.png",
                     iconSize: [24, 32]
@@ -431,7 +446,7 @@ function putBusMarker(linha) {
 
                 markerBus[i].setIcon(busIcon);                
             }
-
+            
             markerBus[i].addTo(map);
         }
     }

@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -21,16 +19,14 @@
         <link rel="stylesheet" href="styles/style.css">
         <link href="styles/mapa.css" rel="stylesheet" type="text/css" />
         <link href="styles/circular.css" rel="stylesheet" type="text/css" />
-        
-        <?php include('script2.php'); ?>
-
+    
         <script type="text/javascript" charset="UTF-8" src="./scripts/L.KML.js"></script>
         <script type="text/javascript" charset="UTF-8" src="./scripts/map.js"></script>
         <script src="/scripts/jquery-3.5.1.min.js"></script>       
 
     </head>
 
-    <body onload="initialize();">
+    <body onload=" searchInput();">
         
         <br/>
 	
@@ -82,11 +78,11 @@
                         <strong class="mapa_titulo_2">Estou em</strong><br/>
                             
                             <input type="radio" name="myLocal" id="myLocal" onclick="setLocation();"
-                                    value="0" <?php if($meuLocal==0){echo "CHECKED";}?>>Marcador
+                                    value="0" checked>Marcador
                                         (arraste o marcador para indicar sua posição) <br/>
                             
                             <input type="radio" name="myLocal" id="myLocal" onclick="setLocation();"
-						            value="1" <?php if($meuLocal==1){echo "CHECKED";}?>>Minha
+						            value="1" >Minha
                                         localiza&#231;&#227;o (apenas para dispositivos com GPS) <br/> <br/>
 
                         <strong class="mapa_titulo_2">Tipo de Linha</strong><br/>
