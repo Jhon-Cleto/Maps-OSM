@@ -28,6 +28,7 @@ var lastAddress = "";
 
 var countCoordsIsNull = 0;
 
+var inputchecked = false;
 var noturno = false;
 var idCircularLinha;
 var idCirculino;
@@ -258,6 +259,8 @@ function createBusStop(ponto, horariosPonto){
         
     }
 
+    //searchImage(ponto.idCircularPonto);
+
     let content = "<table border=\"0\" width=\"350\" style=\"font-size: 13px;\">" + "<tr>" + "<td colspan=\"2\" align=\"center\" style=\"font-size: 15px;\"><b>" + ponto.unidade + " </b><br/></td>" + "</tr> " + "<tr>" + "<td  align=\"center\">" + ponto.referencia + "</td>" + "</tr> " + "</tr> " + "<tr>" + "<td  align=\"center\"><img src=\"./img/semImagem.png\" style=\"max-width: 80%; max-height: 80%;\"></td>" + "</tr> " + "<tr>" + "<td  align=\"center\" ><b>Horários do " + ponto.descricao + "</b></td>" + "</tr> " + "<tr>" + "<td  align=\"center\">" + horarios + "</td>" + "</tr> " + "<tr>" + "<td  align=\"center\" style=\"font-weight: bold;\">" + cobertura + "</td>" + "</tr> " + "<tr>" + "<td  align=\"center\" style=\"font-size: 13px;\"><img src=img/cadeirante.jpg style=\"width: 15px; height: 15px;\"> <font color=\"#0000FF\">Viagens com &#244;nibus adaptado para deficientes f&#237;sicos</font></td>" + "</tr> " + "</table>";
 
     popup.setContent(content);
@@ -273,6 +276,13 @@ function createBusStop(ponto, horariosPonto){
     }
 
     busStops.push(stop);
+}
+
+function searchImage(imageName) {
+    url = `img/fotosPontosCI/${imageName}.jpg`;
+
+    fetch(url)
+    .then(response => console.log(response));
 }
 
 function searchInput() {
@@ -312,12 +322,18 @@ function insetInput(linha, form){
     input.value = `${linha.idCircular};${linha.idCirculino}`;
     input.addEventListener("change", function(){submitService(this.value);});
 
-    if(linha.idCircular == 1 && linha.idCirculino == 5){
+    if(linha.idCircular == 1 && linha.idCirculino == 5 && !inputchecked){
         input.checked = true;
         defineIds(linha.idCircular, linha.idCirculino);
-    } else if(noturno && linha.idCircular == LINHA_NOTURNO){
+        inputchecked = true;
+    } else if(noturno && linha.idCircular == LINHA_NOTURNO && !inputchecked){
         input.checked = true;
         defineIds(linha.idCircular, linha.idCirculino);
+        inputchecked = true;
+    } else if(linha.idCircular == 2 && linha.idCirculino == 6 && !inputchecked){
+        input.checked = true;
+        inputchecked = true;
+        defineIds(linha.idCircular, linha.idCirculino);        
     }
 
     label.htmlFor = input.id;
