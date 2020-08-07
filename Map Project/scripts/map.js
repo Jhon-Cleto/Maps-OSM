@@ -259,11 +259,8 @@ function createBusStop(ponto, horariosPonto){
         
     }
 
-    //searchImage(ponto.idCircularPonto);
+    searchImage(ponto, popup, horarios);
 
-    let content = "<table border=\"0\" width=\"350\" style=\"font-size: 13px;\">" + "<tr>" + "<td colspan=\"2\" align=\"center\" style=\"font-size: 15px;\"><b>" + ponto.unidade + " </b><br/></td>" + "</tr> " + "<tr>" + "<td  align=\"center\">" + ponto.referencia + "</td>" + "</tr> " + "</tr> " + "<tr>" + "<td  align=\"center\"><img src=\"./img/semImagem.png\" style=\"max-width: 80%; max-height: 80%;\"></td>" + "</tr> " + "<tr>" + "<td  align=\"center\" ><b>Horários do " + ponto.descricao + "</b></td>" + "</tr> " + "<tr>" + "<td  align=\"center\">" + horarios + "</td>" + "</tr> " + "<tr>" + "<td  align=\"center\" style=\"font-weight: bold;\">" + cobertura + "</td>" + "</tr> " + "<tr>" + "<td  align=\"center\" style=\"font-size: 13px;\"><img src=img/cadeirante.jpg style=\"width: 15px; height: 15px;\"> <font color=\"#0000FF\">Viagens com &#244;nibus adaptado para deficientes f&#237;sicos</font></td>" + "</tr> " + "</table>";
-
-    popup.setContent(content);
     busStop.bindPopup(popup);
     busStop.addTo(map);
 
@@ -278,11 +275,23 @@ function createBusStop(ponto, horariosPonto){
     busStops.push(stop);
 }
 
-function searchImage(imageName) {
-    url = `img/fotosPontosCI/${imageName}.jpg`;
+function searchImage(ponto, popup, horarios) {
+    fetch('searchImage.php', {
+        method: 'POST',
+        body: new URLSearchParams(`fileName=${ponto.idCircularPonto}`)
+    })
+     .then(res => res.text())
+     .then(res => setPopupContent(popup, ponto, horarios, res))
+     .catch(error => console.error(error));
+}
 
-    fetch(url)
-    .then(response => console.log(response));
+function setPopupContent(popup, ponto, horarios, imageURL){
+
+    let cobertura = (ponto.isCobertura) ? "Este ponto possui cobertura." : "";
+
+    let content = "<table border=\"0\" width=\"350\" style=\"font-size: 13px;\">" + "<tr>" + "<td colspan=\"2\" align=\"center\" style=\"font-size: 15px;\"><b>" + ponto.unidade + " </b><br/></td>" + "</tr> " + "<tr>" + "<td  align=\"center\">" + ponto.referencia + "</td>" + "</tr> " + "</tr> " + "<tr>" + "<td  align=\"center\"><img src=\""+imageURL+"\" style=\"max-width: 80%; max-height: 80%;\"></td>" + "</tr> " + "<tr>" + "<td  align=\"center\" ><b>Horários do " + ponto.descricao + "</b></td>" + "</tr> " + "<tr>" + "<td  align=\"center\">" + horarios + "</td>" + "</tr> " + "<tr>" + "<td  align=\"center\" style=\"font-weight: bold;\">" + cobertura + "</td>" + "</tr> " + "<tr>" + "<td  align=\"center\" style=\"font-size: 13px;\"><img src=img/cadeirante.jpg style=\"width: 15px; height: 15px;\"> <font color=\"#0000FF\">Viagens com &#244;nibus adaptado para deficientes f&#237;sicos</font></td>" + "</tr> " + "</table>";
+
+    popup.setContent(content);
 }
 
 function searchInput() {
@@ -322,15 +331,15 @@ function insetInput(linha, form){
     input.value = `${linha.idCircular};${linha.idCirculino}`;
     input.addEventListener("change", function(){submitService(this.value);});
 
-    if(linha.idCircular == 1 && linha.idCirculino == 5 && !inputchecked){
+    if(linha.idCircular == 1 && linha.idCirculino == 5 && !inputchecked && !noturno){
         input.checked = true;
         defineIds(linha.idCircular, linha.idCirculino);
         inputchecked = true;
-    } else if(noturno && linha.idCircular == LINHA_NOTURNO && !inputchecked){
+    } else if(noturno && linha.idCircular == LINHA_NOTURNO && !inputchecked && noturno){
         input.checked = true;
         defineIds(linha.idCircular, linha.idCirculino);
         inputchecked = true;
-    } else if(linha.idCircular == 2 && linha.idCirculino == 6 && !inputchecked){
+    } else if(linha.idCircular == 2 && linha.idCirculino == 6 && !inputchecked && !noturno){
         input.checked = true;
         inputchecked = true;
         defineIds(linha.idCircular, linha.idCirculino);        
@@ -813,12 +822,12 @@ function route() {
     else if(onibusEstaPontoInicial()) {
         message = `O &#244;nibus est&#225; no ponto inicial.`;
         message += `<br/>Pr&#243;ximo Hor&#225;rio de Sa&#237;da do &#244;nibus: ${busStops[start].itinerary[0].slice(0,5)}`;
-        message += `<br/>A previs&#227;o de chegada em ${busStops[end].referencia} s&#227;o &#224;s ${checkItinerary(start, end)}`
+        message += `<br/>A previs&#227;o de chegada em ${busStops[end].referencia} s&#227;o &#224;s ${checkItinerary(start, end)}.`
         setRouteMessage(message);
     }
 
     else if(end - start == 1){
-        message = `O &#244;nibus est&#225; chegando ao ponto ${busStops[end].referencia}`;
+        message = `O &#244;nibus est&#225; chegando ao ponto ${busStops[end].referencia}.`;
         setRouteMessage(message); 
     }
 
@@ -836,7 +845,7 @@ function route() {
         for(let i = start+1; i <= end; i++) {
             waypoints[counter++] = L.Routing.waypoint(busStops[i].marker.getLatLng(), busStops[i].referencia);
         }
-
+        
         routeController.waypoints = waypoints;
         routeController.router.route(routeController.waypoints, showRoute);
     }

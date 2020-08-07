@@ -93,7 +93,7 @@
 
                         </div>
 
-                        <br/><br/>
+                        <br/>
 
                         <img src="img/cadeirante.jpg"style="width: 15px; height: 15px;"> <font color="#0000FF">Viagens com &#244;nibus adaptado para deficientes f&#237;sicos</font>
                         <br/><br/>
@@ -128,7 +128,7 @@
 						</a>
 						
 						<div id="details" class="mapa_texto"
-							style="width: 280px; height: 80px; float: left; margin-left: 10px; margin-top: 20px;">
+							style="width: 280px; height: 65px; float: left; margin-left: 6px; margin-top: 10px;">
                         </div>
                         
                         <strong class="mapa_titulo_2">Legenda</strong><br/><br/>
