@@ -152,6 +152,7 @@
                 <span class="close">&times;</span>
                 <script>refreshDivModal();</script>
                 <div id="modalContentQualCircular">
+                    <?php  //include_once("qualCircular.php"); ?>
                 </div>
             </div>
 	    </div>           

@@ -813,6 +813,10 @@ function route() {
         routeController.display = null;
     }
 
+    for(let i = start; i<= end; i++){
+        console.log(distanceAtoB(busStops[i].marker.getLatLng(), busStops[start].marker.getLatLng()));
+    }
+
     if(usuarioEstaPontoInicial()){
         message = "Voc&#234; est&#225; no ponto inicial."
         message += `<br/>Pr&#243;ximo Hor&#225;rio de Sa&#237;da do &#244;nibus: ${busStops[start].itinerary[0].slice(0,5)}`;
@@ -845,6 +849,7 @@ function route() {
         for(let i = start+1; i <= end; i++) {
             waypoints[counter++] = L.Routing.waypoint(busStops[i].marker.getLatLng(), busStops[i].referencia);
         }
+
         
         routeController.waypoints = waypoints;
         routeController.router.route(routeController.waypoints, showRoute);
