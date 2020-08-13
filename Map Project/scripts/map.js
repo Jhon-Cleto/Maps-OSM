@@ -5,12 +5,16 @@ var map;
 const routeController = {
     router : L.Routing.osrmv1(),
     display: null,
-    waypoints: null
+    orderStops: null,
+    route: function(waypoints, callback){
+        this.router.route(waypoints, callback);
+    }
 };
 
 var markerBus = new Array;
 var markerIAmHere;
 var busStops = new Array;
+
 
 var currentLatOnibus = new Array;
 var currentLngOnibus = new Array;
@@ -183,9 +187,39 @@ function insertKML(){
     });    
 }
 
+function requireOrderStops() {
+
+    if(idCircularLinha == LINHA_MORADIA){
+        return;
+    }
+    
+    let url = `./pontos/pontos_circular_${idCircularLinha}.json`;
+
+    fetch(url)
+    .then(res => res.json())
+    .then(res => addOrderStops(res.pontos))
+    .catch(err => console.error(err));
+
+}
+
+function addOrderStops(stops) {
+    let orderStops = new Array;
+
+    stops.forEach((e) => {
+        let stop = {
+            reference: e.referencia,
+            order: e.ordem,
+            position: L.latLng([e.latitude, e.longitude])
+        };
+        orderStops.push(stop);
+    });
+
+    routeController.orderStops = orderStops;
+}
+
 // Criação dos Marcadores de Pontos de ônibus
 function initBusStops(){
-    url = 'https://www.prefeitura.unicamp.br/posicao/app/pontosCircular';
+    let url = 'https://www.prefeitura.unicamp.br/posicao/app/pontosCircular';
     
     fetch(url)
     .then(res => res.json())
@@ -414,8 +448,8 @@ function initMap(){
 
     insertKML();
     initBusStops();
-
-    putBusMarker(idCircularLinha);
+    requireOrderStops();
+    putBusMarker();
     putIAmHereMarker();
 
     buscarPosicaoOnibus();   
@@ -450,7 +484,7 @@ function setLocation(){
 }
 
 //Função para colocar o marcador do ônibus
-function putBusMarker(linha) {
+function putBusMarker() {
 
     for(var i = 0; i < currentLatOnibus.length; i++){
 
@@ -504,7 +538,7 @@ function putBusMarker(linha) {
     // centralizar o mapa
     if (centralizarNoOnibus.checked){		
         if (!isNaN(markerBus[0].getLatLng().lat && !isNaN(markerBus[0].getLatLng().lng))){
-            if (linha != LINHA_MORADIA) {map.setView(markerBus[0].getLatLng());}
+            if (idCircularLinha != LINHA_MORADIA) {map.setView(markerBus[0].getLatLng());}
             else {}
         }
     }
@@ -756,23 +790,38 @@ function checkItinerary(start, end) {
     return busStops[end].itinerary[0].slice(0,5);
 }
 
-function getBusStop(target) {
+function getNearStop(target) {
     let targetPosition = target.getLatLng();
     let stopPosition;
     let distance = 9999999999;
     let distanceAux;
     let index = -1;
     
-    for(let i = 0; i < busStops.length; i++){
-        stopPosition = busStops[i].marker.getLatLng();
+    routeController.orderStops.forEach((e, i) => {
+        stopPosition = e.position;
         distanceAux = distanceAtoB(stopPosition, targetPosition);
         if(distanceAux < distance){
             distance = distanceAux
             index = i;
         }
-    }
+    })
 
     return index;
+}
+
+function getBusStop(index) {
+
+    let reference  = routeController.orderStops[index].reference;
+    let newIndex = -1;
+
+    busStops.forEach((e, i) => {
+        if(e.referencia == reference){
+            console.log(e.referencia);
+            newIndex = i;
+        }
+    })
+    
+    return newIndex;
 }
 
 function setRouteMessage(message){
@@ -805,33 +854,36 @@ function showRoute(error, routes) {
 // Traçar a rota e exibir distância e tempo
 function route() {
 
-    let start = getBusStop(markerBus[0]);
-    let end = getBusStop(markerIAmHere);
+    let start = getNearStop(markerBus[0]);
+    let end = getNearStop(markerIAmHere);
     let message = "";
+
+    let userStop = getBusStop(end);
+    let busStop = getBusStop(start);
+
+    console.log(userStop);
+    console.log(busStop);
+
     if(routeController.display != null){
         routeController.display.remove();
         routeController.display = null;
     }
 
-    for(let i = start; i<= end; i++){
-        console.log(distanceAtoB(busStops[i].marker.getLatLng(), busStops[start].marker.getLatLng()));
-    }
-
     if(usuarioEstaPontoInicial()){
         message = "Voc&#234; est&#225; no ponto inicial."
-        message += `<br/>Pr&#243;ximo Hor&#225;rio de Sa&#237;da do &#244;nibus: ${busStops[start].itinerary[0].slice(0,5)}`;
+        message += `<br/>Pr&#243;ximo Hor&#225;rio de Sa&#237;da do &#244;nibus: ${busStops[userStop].itinerary[0].slice(0,5)}`;
         setRouteMessage(message);
     }
 
     else if(onibusEstaPontoInicial()) {
         message = `O &#244;nibus est&#225; no ponto inicial.`;
-        message += `<br/>Pr&#243;ximo Hor&#225;rio de Sa&#237;da do &#244;nibus: ${busStops[start].itinerary[0].slice(0,5)}`;
-        message += `<br/>A previs&#227;o de chegada em ${busStops[end].referencia} s&#227;o &#224;s ${checkItinerary(start, end)}.`
+        message += `<br/>Pr&#243;ximo Hor&#225;rio de Sa&#237;da do &#244;nibus: ${busStops[busStop].itinerary[0].slice(0,5)}`;
+        message += `<br/>A previs&#227;o de chegada em ${busStops[userStop].referencia} s&#227;o &#224;s ${checkItinerary(busStop, userStop)}.`
         setRouteMessage(message);
     }
 
     else if(end - start == 1){
-        message = `O &#244;nibus est&#225; chegando ao ponto ${busStops[end].referencia}.`;
+        message = `O &#244;nibus est&#225; chegando ao ponto ${busStops[userStop].referencia}.`;
         setRouteMessage(message); 
     }
 
@@ -847,12 +899,10 @@ function route() {
 
         waypoints[counter++] = L.Routing.waypoint(markerBus[0].getLatLng());
         for(let i = start+1; i <= end; i++) {
-            waypoints[counter++] = L.Routing.waypoint(busStops[i].marker.getLatLng(), busStops[i].referencia);
+            waypoints[counter++] = L.Routing.waypoint(routeController.orderStops[i].position, routeController.orderStops[i].reference);
         }
-
-        
-        routeController.waypoints = waypoints;
-        routeController.router.route(routeController.waypoints, showRoute);
+        console.log(waypoints);
+        routeController.route(waypoints, showRoute);
     }
     
 
