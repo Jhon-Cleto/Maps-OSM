@@ -232,12 +232,11 @@ function depurarPontos(pontos){
     
     let ponto = pontos[0];
     let arrHorarios = new Array;
-    
     for(let i = 0; i < pontos.length; i++){
         
         if(pontos[i].idCircularLinha == idCircularLinha){
             if(pontos[i].idCircularPonto != ponto.idCircularPonto){
-                createBusStop(ponto, arrHorarios);
+                createBusStop(( i-1 >= 0) ? pontos[i-1] : ponto, arrHorarios);
                 ponto = pontos[i];
                 arrHorarios = new Array;
             }
