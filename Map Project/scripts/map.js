@@ -364,15 +364,15 @@ function insetInput(linha, form){
     input.value = `${linha.idCircular};${linha.idCirculino}`;
     input.addEventListener("change", function(){submitService(this.value);});
 
-    if(linha.idCircular == 1 && linha.idCirculino == 5 && !inputchecked && !noturno){
+    if(linha.idCircular == 1 && !inputchecked){
         input.checked = true;
         defineIds(linha.idCircular, linha.idCirculino);
         inputchecked = true;
-    } else if(noturno && linha.idCircular == LINHA_NOTURNO && !inputchecked && noturno){
+    } else if(noturno && linha.idCircular == LINHA_NOTURNO && !inputchecked){
         input.checked = true;
         defineIds(linha.idCircular, linha.idCirculino);
         inputchecked = true;
-    } else if(linha.idCircular == 2 && linha.idCirculino == 6 && !inputchecked && !noturno){
+    } else if(linha.idCircular == 2 && !inputchecked){
         input.checked = true;
         inputchecked = true;
         defineIds(linha.idCircular, linha.idCirculino);        
