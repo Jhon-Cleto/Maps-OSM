@@ -60,11 +60,15 @@ setInterval(function(){
             }
     
             checkHorario();
-    
+            
             buscarPosicaoOnibus();
     
             if(statusCoordinates != 3 && idCircularLinha != LINHA_MORADIA){
                 showWhereIsBus();
+            }
+
+            if(traceRoute){
+                route();
             }
         }
 
@@ -928,9 +932,6 @@ function route() {
     let start = getNearStop(markerBus[0]);
     let end = getNearStop(markerIAmHere);
 
-    console.log(start);
-    console.log(end);
-
     routing.waypoints = [];
 
     if(routing.display != null){
@@ -940,13 +941,13 @@ function route() {
 
     if(usuarioEstaPontoInicial()){
         message = "Voc&#234; est&#225; no ponto inicial."
-        message += `<br/>Pr&#243;ximo Hor&#225;rio de Sa&#237;da do &#244;nibus: ${busStops[end].itinerary[0].slice(0,5)}`;
+        message += `<br/>Pr&#243;ximo Hor&#225;rio de Sa&#237;da do &#244;nibus: ${busStops[0].itinerary[0].slice(0,5)}`;
         setRouteMessage(message);
     }
 
     else if(onibusEstaPontoInicial()) {
         message = `O &#244;nibus est&#225; no ponto inicial.`;
-        message += `<br/>Pr&#243;ximo Hor&#225;rio de Sa&#237;da do &#244;nibus: ${busStops[start].itinerary[0].slice(0,5)}`;
+        message += `<br/>Pr&#243;ximo Hor&#225;rio de Sa&#237;da do &#244;nibus: ${busStops[0].itinerary[0].slice(0,5)}`;
         message += `<br/>A previs&#227;o de chegada em ${busStops[end].referencia} s&#227;o &#224;s ${checkItinerary(start, end)}.`
         setRouteMessage(message);
     }
@@ -985,6 +986,8 @@ function route() {
         routing.display.addTo(map);
 
         showRoute(totalDistance, totalDuration);
+
+        traceRoute = true;
     }
 }
 
@@ -1002,5 +1005,4 @@ function showRoute(totalDistance, totalDuration) {
     ' km com previs&#227;o de chegada em ' + Math.ceil(duration) + ' minutos.';
 
     setRouteMessage(message);
-
 }
