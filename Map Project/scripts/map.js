@@ -2,12 +2,19 @@
 var traceRoute = false;
 var map;
 
-const routeController = {
+const routing = {
     router : L.Routing.osrmv1(),
     display: null,
-    orderStops: null,
-    route: function(waypoints, callback){
-        this.router.route(waypoints, callback);
+    pathway: [],
+    waypoints: [],
+    route: function(callback){
+        this.router.route(this.waypoints, callback);
+    },
+    addWaypoint: function(latLng){
+        this.waypoints.push(latLng);
+    },
+    reset: function(){
+        this.pathway = [];
     }
 };
 
@@ -90,11 +97,13 @@ function resetMap(){
     currentLatOnibus = new Array;
     currentLngOnibus = new Array;
     busStops = new Array;
+    routing.pathway = [];
     setRouteMessage('');
 
     const divOpt = document.querySelector("#divOptions");
     const divRM = document.querySelector("#rotasMoradia");
     const btnRoute = document.querySelector('#traceRoute');
+    const btnSearch = document.querySelector("#qualCircular");
 
     if(idCircularLinha == LINHA_MORADIA){
         divOpt.style.display = 'none';
@@ -113,14 +122,16 @@ function resetMap(){
         }
 
         
-        btnRoute.style.display = 'none';
+        btnRoute.style.opacity = 0;
+        btnSearch.style.opacity = 0;
     }
 
     else{
 
         divOpt.style.display ='inline';
         divRM.style.display = 'none'; 
-        btnRoute.style.display = 'block';
+        btnRoute.style.opacity = 1;
+        btnSearch.style.opacity = 1;
     }
  
 }
@@ -206,16 +217,47 @@ function addOrderStops(stops) {
     let orderStops = new Array;
 
     stops.forEach((e) => {
-        let stop = {
-            reference: e.referencia,
-            order: e.ordem,
-            position: L.latLng([e.latitude, e.longitude])
-        };
-        orderStops.push(stop);
+        let stop = findBusStop(e.referencia)
+        if(stop != 'stop'){
+            orderStops.push(stop);
+        }
+
     });
 
-    routeController.orderStops = orderStops;
+    busStops = orderStops;
 }
+
+function findBusStop(reference) {
+    let busStop = 'stop';
+    busStops.forEach(e => {
+        if(e.referencia == reference){
+            busStop = e;
+        }
+    })
+
+    return busStop;
+}
+
+async function getWay() {
+    let path = `./percursos/percurso_linha_${linha}.json`;
+    try {
+        let way = await fetch(path).then(res => res.json()).then(res => res.percurso);
+        way.forEach(e => {
+            if(e.ativo){
+                let obj = {
+                    id: e.id_coordenada,
+                    position: L.latLng(e.latitude, e.longitude),
+                    adress: e.endereco,
+                    speed: e.velocidade_media_trecho
+                }
+                routing.orderStops.push(obj);
+           } 
+        });
+    } catch (error) {
+        console.log(error)  
+    }
+    
+}   
 
 // Criação dos Marcadores de Pontos de ônibus
 function initBusStops(){
@@ -225,6 +267,7 @@ function initBusStops(){
     .then(res => res.json())
     .then(res => res.pontos)
     .then(res => depurarPontos(res))
+    
     
 }
 
@@ -247,9 +290,12 @@ function depurarPontos(pontos){
         // Sabendo que o Array vem em ordem crescente de linhas de ônibus
         else if(pontos[i].idCircularLinha > idCircularLinha){
             createBusStop(ponto, arrHorarios);
-            return;
+            
+            break;
         }    
     }
+    requireOrderStops();
+    
 }
 
 function createBusStop(ponto, horariosPonto){
@@ -410,6 +456,27 @@ function eventTraceRoute(){
     btn.addEventListener('click', route);
 }
 
+async function getWay() {
+    let path = `./percursos/percurso_linha_${idCircularLinha}.json`;
+    try {
+        let way = await fetch(path).then(res => res.json()).then(res => res.percurso);
+        way.forEach(e => {
+            if(e.ativo){
+                let obj = {
+                    id: e.id_coordenada,
+                    position: L.latLng(e.latitude, e.longitude),
+                    adress: e.endereco,
+                    speed: e.velocidade_media_trecho
+                }
+                routing.pathway.push(obj);
+           } 
+        });
+    } catch (error) {
+        console.log(error)  
+    }
+    
+}
+
 function initialize(){
 
     setLocation();
@@ -447,13 +514,14 @@ function initMap(){
 
     insertKML();
     initBusStops();
-    requireOrderStops();
+    
     putBusMarker();
     putIAmHereMarker();
 
     buscarPosicaoOnibus();   
     map.addEventListener('zoom', setVisibleMarkers); 
-
+    
+    getWay();
 }
 
 // usar a localização real do Usuário no mapa
@@ -796,8 +864,8 @@ function getNearStop(target) {
     let distanceAux;
     let index = -1;
     
-    routeController.orderStops.forEach((e, i) => {
-        stopPosition = e.position;
+    busStops.forEach((e, i) => {
+        stopPosition = e.marker.getLatLng();
         distanceAux = distanceAtoB(stopPosition, targetPosition);
         if(distanceAux < distance){
             distance = distanceAux
@@ -808,81 +876,83 @@ function getNearStop(target) {
     return index;
 }
 
-function getBusStop(index) {
 
-    let reference  = routeController.orderStops[index].reference;
-    let newIndex = -1;
+function findLocation(array, finder, localS, localE) {
 
-    busStops.forEach((e, i) => {
-        if(e.referencia == reference){
-            console.log(e.referencia);
-            newIndex = i;
+    let positions = new Array(2), distS = 9999999999, distE = 9999999999, auxS, auxE;
+
+    array.forEach((e, i) => {
+
+        auxS = finder(e, localS);
+        auxE = finder(e, localE);
+
+        if(auxS <= distS){
+            positions[0] = i;
+            distS = auxS;
         }
+
+        else if(auxE <= distE){
+            positions[1] = i;
+            distE = auxE;
+        }
+
     })
-    
-    return newIndex;
+
+    return positions;
 }
 
-function setRouteMessage(message){
-    const div = document.querySelector('#details');
-    div.innerHTML = '<span style="font-weight: bold">' + message + '</span>';
+function findInBusStops(elemt, position) {
+    return position.distanceTo(elemt.getLatLng());
 }
 
-function showRoute(error, routes) {
-    if(error != null) {
-        console.log(error);
-        return;
+function findInPathway(elemt, position) {
+    return position.distanceTo(elemt.position);
+}
+
+function getDistance(pointA, pointB) {
+    return pointA.distanceTo(pointB);
+}
+
+function getDuration(distance, speed) {
+    if(speed <= 0) {
+        return 0;
     }
-
-    const route = routes[0];
-
-    routeController.display = L.Routing.line(route);
-
-    let distance = route.summary.totalDistance / 1000;
-    let duration = route.summary.totalTime / 60;
-
-    let message = 'A dist&#226;ncia do &#244;nibus at&#233; o ponto mais pr&#243;ximo a voc&#234; &#233; ' + distance.toFixed(2) +
-    ' km com previs&#227;o de chegada em ' + Math.ceil(duration) + ' minutos.';
-
-    setRouteMessage(message);
-
-    routeController.display.addTo(map);
-
+    return distance/speed;
 }
 
 // Traçar a rota e exibir distância e tempo
 function route() {
 
-    let start = getNearStop(markerBus[0]);
-    let end = getNearStop(markerIAmHere);
     let message = "";
 
-    let userStop = getBusStop(end);
-    let busStop = getBusStop(start);
+    let start = getNearStop(markerBus[0]);
+    let end = getNearStop(markerIAmHere);
 
-    console.log(userStop);
-    console.log(busStop);
+    console.log(start);
+    console.log(end);
 
-    if(routeController.display != null){
-        routeController.display.remove();
-        routeController.display = null;
+    routing.waypoints = [];
+
+    if(routing.display != null){
+        routing.display.remove();
+        routing.display = null;
     }
 
     if(usuarioEstaPontoInicial()){
         message = "Voc&#234; est&#225; no ponto inicial."
-        message += `<br/>Pr&#243;ximo Hor&#225;rio de Sa&#237;da do &#244;nibus: ${busStops[userStop].itinerary[0].slice(0,5)}`;
+        message += `<br/>Pr&#243;ximo Hor&#225;rio de Sa&#237;da do &#244;nibus: ${busStops[end].itinerary[0].slice(0,5)}`;
         setRouteMessage(message);
     }
 
     else if(onibusEstaPontoInicial()) {
         message = `O &#244;nibus est&#225; no ponto inicial.`;
-        message += `<br/>Pr&#243;ximo Hor&#225;rio de Sa&#237;da do &#244;nibus: ${busStops[busStop].itinerary[0].slice(0,5)}`;
-        message += `<br/>A previs&#227;o de chegada em ${busStops[userStop].referencia} s&#227;o &#224;s ${checkItinerary(busStop, userStop)}.`
+        message += `<br/>Pr&#243;ximo Hor&#225;rio de Sa&#237;da do &#244;nibus: ${busStops[start].itinerary[0].slice(0,5)}`;
+        message += `<br/>A previs&#227;o de chegada em ${busStops[end].referencia} s&#227;o &#224;s ${checkItinerary(start, end)}.`
         setRouteMessage(message);
     }
 
     else if(end - start == 1){
-        message = `O &#244;nibus est&#225; chegando ao ponto ${busStops[userStop].referencia}.`;
+        message = `O &#244;nibus est&#225; chegando ao ponto ${busStops[end].referencia}.`;
         setRouteMessage(message); 
     }
 
@@ -893,16 +963,44 @@ function route() {
     }
 
     else if(start < end) {
-        let waypoints = new Array;
-        let counter = 0;
 
-        waypoints[counter++] = L.Routing.waypoint(markerBus[0].getLatLng());
-        for(let i = start+1; i <= end; i++) {
-            waypoints[counter++] = L.Routing.waypoint(routeController.orderStops[i].position, routeController.orderStops[i].reference);
+        let way = findLocation(routing.pathway, findInPathway, markerBus[0].getLatLng(), busStops[end].marker.getLatLng());
+
+        let totalDistance = 0;
+        let totalDuration = 0;
+        let duration, distance;
+
+        routing.addWaypoint(markerBus[0].getLatLng(), 'Start');
+        for(let i = way[0]; i <= way[1]; i++) {
+            routing.addWaypoint(routing.pathway[i].position);
+            if(i < way[1]) {
+                distance = getDistance(routing.pathway[i].position, routing.pathway[i+1].position);
+                duration = getDuration(distance, routing.pathway[i].speed);
+                totalDistance += distance;
+                totalDuration += duration;
+            }
         }
-        console.log(waypoints);
-        routeController.route(waypoints, showRoute);
+
+        routing.display = L.polyline(routing.waypoints, {color: 'red'});
+        routing.display.addTo(map);
+
+        showRoute(totalDistance, totalDuration);
     }
-    
+}
+
+function setRouteMessage(message){
+    const div = document.querySelector('#details');
+    div.innerHTML = '<span style="font-weight: bold">' + message + '</span>';
+}
+
+function showRoute(totalDistance, totalDuration) {
+
+    let distance = totalDistance / 1000;
+    let duration = totalDuration / 60;
+
+    let message = 'A dist&#226;ncia do &#244;nibus at&#233; o ponto mais pr&#243;ximo a voc&#234; &#233; ' + distance.toFixed(2) +
+    ' km com previs&#227;o de chegada em ' + Math.ceil(duration) + ' minutos.';
+
+    setRouteMessage(message);
 
 }
