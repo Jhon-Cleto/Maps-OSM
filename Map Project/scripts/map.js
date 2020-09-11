@@ -3,13 +3,9 @@ var traceRoute = false;
 var map;
 
 const routing = {
-    router : L.Routing.osrmv1(),
     display: null,
     pathway: [],
     waypoints: [],
-    route: function(callback){
-        this.router.route(this.waypoints, callback);
-    },
     addWaypoint: function(latLng){
         this.waypoints.push(latLng);
     },
@@ -153,7 +149,7 @@ function setLatLng(position) {
     currentLngUsuario = position.coords.longitude; 
 
     putIAmHereMarker();
-
+    map.setView(markerIAmHere.getLatLng(), 15);
 }
 
 // função para retornar erro da geolocalizacao
@@ -219,7 +215,7 @@ function requireOrderStops() {
 
 function addOrderStops(stops) {
     let orderStops = new Array;
-
+    console.log(stops)
     stops.forEach((e) => {
         let stop = findBusStop(e.referencia)
         if(stop != 'stop'){
@@ -473,7 +469,7 @@ async function getWay() {
                     speed: e.velocidade_media_trecho
                 }
                 routing.pathway.push(obj);
-           } 
+            } 
         });
     } catch (error) {
         console.log(error)  
@@ -550,6 +546,10 @@ function setLocation(){
 
     if(map == null){
         initMap();
+    }
+
+    if(map != null){
+        map.setView(markerIAmHere.getLatLng(), 15);
     }
         
 }
@@ -776,18 +776,20 @@ function fixRounding(value) {
 
 function showWhereIsBus(){
 
-    var msg = "";
+    if(statusCoordinates[0] != 3){
+        var msg = "";
 
-    msg ='<span style="font-weight: bold">Atualmente o &#244;nibus est&#225; em ' + lastAddressArray[0];
+        msg ='<span style="font-weight: bold">Atualmente o &#244;nibus est&#225; em ' + lastAddressArray[0];
+        
+        if (onibusEstaPontoInicial() && lastAddress.indexOf("Sabin") != -1){
+            msg += " (ponto inicial).";
+        }
     
-    if (onibusEstaPontoInicial() && lastAddress.indexOf("Sabin") != -1){
-        msg += " (ponto inicial).";
+        msg += '</span>';
+        msg += '<br/><span style="font-weight: bold">A velocidade média atual é ' + currentVelocOnibus[0].toString() + ' km/h.</span>';
+    
+        document.getElementById("endereco").innerHTML = msg;  
     }
-
-    msg += '</span>';
-    msg += '<br/><span style="font-weight: bold">A velocidade média atual é ' + currentVelocOnibus[0].toString() + ' km/h.</span>';
-
-    document.getElementById("endereco").innerHTML = msg;  
 
 }
 
