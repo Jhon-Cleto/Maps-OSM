@@ -20,8 +20,8 @@
         <link href="styles/mapa.css" rel="stylesheet" type="text/css" />
         <link href="styles/circular.css" rel="stylesheet" type="text/css" />
     
-        <script type="text/javascript" charset="UTF-8" src="./scripts/L.KML.js"></script>
-        <script type="text/javascript" charset="UTF-8" src="./scripts/map.js"></script>      
+        <script type="text/javascript" src="./scripts/L.KML.js"></script>
+        <script type="text/javascript" src="./scripts/map.js"></script>      
 
     </head>
 

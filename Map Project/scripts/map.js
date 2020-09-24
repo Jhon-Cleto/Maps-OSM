@@ -52,7 +52,7 @@ setInterval(function(){
         if(map != null){
 
             if (countCoordsIsNull >=10){
-                location.reload(true);
+                location.reload();
             }
     
             checkHorario();
@@ -215,7 +215,6 @@ function requireOrderStops() {
 
 function addOrderStops(stops) {
     let orderStops = new Array;
-    console.log(stops)
     stops.forEach((e) => {
         let stop = findBusStop(e.referencia)
         if(stop != 'stop'){
@@ -318,11 +317,6 @@ function createBusStop(ponto, horariosPonto){
 
     let popup = L.popup({maxWidth: 350});
 
-    let cobertura = "";
-    if(ponto.isCobertura){
-        cobertura = "Este ponto possui cobertura.";
-    }
-
     let horarios = (horariosPonto.length > 0) ? "" : "Este ponto não possui horários na próxima 1 hora.";
     let horario;
 
@@ -354,6 +348,7 @@ function createBusStop(ponto, horariosPonto){
     busStops.push(stop);
 }
 
+// pesquisa as imagens dos pontos de ônibus
 function searchImage(ponto, popup, horarios) {
     fetch('searchImage.php', {
         method: 'POST',
@@ -364,6 +359,7 @@ function searchImage(ponto, popup, horarios) {
      .catch(error => console.error(error));
 }
 
+// Cria o balão de informação do ponto de ônibus
 function setPopupContent(popup, ponto, horarios, imageURL){
 
     let cobertura = (ponto.isCobertura) ? "Este ponto possui cobertura." : "";
@@ -373,6 +369,7 @@ function setPopupContent(popup, ponto, horarios, imageURL){
     popup.setContent(content);
 }
 
+// Gerar dinamicamente os inputs para seleção das linhas de ônibus que estão atuando no dia
 function searchInput() {
 
     checkHorario();
@@ -436,13 +433,11 @@ function insetInput(linha, form){
         label.appendChild(img);    
     }
 
-
     div.className = 'linhas';
     div.appendChild(input);
     div.appendChild(label);
 
     form.appendChild(div);
-
 
 }
 
@@ -456,6 +451,7 @@ function eventTraceRoute(){
     btn.addEventListener('click', route);
 }
 
+// armazenar as pegadas do trajeto para usá-las na função de traçar rotas 
 async function getWay() {
     let path = `./percursos/percurso_linha_${idCircularLinha}.json`;
     try {
@@ -473,8 +469,7 @@ async function getWay() {
         });
     } catch (error) {
         console.log(error)  
-    }
-    
+    }  
 }
 
 function initialize(){
@@ -757,21 +752,6 @@ function setVisibleMarkers(){
     }
 
     markerIAmHere.setOpacity(value);
-}
-
-// Corrigir arredondamento quando o último dígito for cinco
-function fixRounding(value) {
-
-    var strDistance = value.toString();
-    var digit = strDistance.charAt(strDistance.length-1);
-    
-    if (digit == '5'){
-        return 0.001;
-    } else if (digit == '4') {
-        return 0.002;
-    }
-
-    return 0;
 }
 
 function showWhereIsBus(){
