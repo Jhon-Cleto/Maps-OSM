@@ -28,6 +28,11 @@ label#lbl-linha3{
     font-weight: bold;
 }
 
+label#lbl-linha4{
+	color:#005C0A;
+	font-weight: bold;
+}
+
 label#lbl-linha6{
     color:#D2691E;
     font-weight: bold;

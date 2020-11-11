@@ -34,6 +34,7 @@ var lastSend = "";
 var lastAddress = "";
 
 var countCoordsIsNull = 0;
+var resetTime = false;
 
 var inputchecked = false;
 var noturno = false;
@@ -57,8 +58,10 @@ setInterval(function(){
     
             checkHorario();
             
-            buscarPosicaoOnibus();
-    
+            if(!resetTime){
+				buscarPosicaoOnibus();
+			}
+			
             if(statusCoordinates != 3 && idCircularLinha != LINHA_MORADIA){
                 showWhereIsBus();
             }
@@ -82,14 +85,15 @@ function submitService(stringValue){
     let values = stringValue.split(';');
     idCircularLinha = values[0];
     idCirculino = values[1];
-
-    resetMap();
     
+	resetTime = true;
+    resetMap();
     initMap();
+    resetTime = false;
 }
 
 function resetMap(){
-
+	
     map.remove();
 
     document.getElementById("endereco").innerHTML = "";
@@ -99,7 +103,8 @@ function resetMap(){
     busStops = new Array;
     routing.pathway = [];
     setRouteMessage('');
-
+	traceRoute = false;
+	
     const divOpt = document.querySelector("#divOptions");
     const divRM = document.querySelector("#rotasMoradia");
     const btnRoute = document.querySelector('#traceRoute');
@@ -133,7 +138,7 @@ function resetMap(){
         btnRoute.style.opacity = 1;
         btnSearch.style.opacity = 1;
     }
- 
+	
 }
 
 function getPosFromGPS(){
@@ -198,17 +203,19 @@ function insertKML(){
     });    
 }
 
+// Consulta o arquivo com os pontos de ônibus ordenados em relação ao trajeto
 function requireOrderStops() {
 
     if(idCircularLinha == LINHA_MORADIA){
         return;
     }
     
-    let url = `./pontos/pontos_circular_${idCircularLinha}.json`;
+    let url = 'https://www.prefeitura.unicamp.br/posicao/site/pontosCircularOrdenados/linha/'+idCircularLinha;
+
 
     fetch(url)
     .then(res => res.json())
-    .then(res => addOrderStops(res.pontos))
+    .then(res => addOrderStops(res.pontosOrdenados))
     .catch(err => console.error(err));
 
 }
@@ -236,27 +243,6 @@ function findBusStop(reference) {
 
     return busStop;
 }
-
-async function getWay() {
-    let path = `./percursos/percurso_linha_${linha}.json`;
-    try {
-        let way = await fetch(path).then(res => res.json()).then(res => res.percurso);
-        way.forEach(e => {
-            if(e.ativo){
-                let obj = {
-                    id: e.id_coordenada,
-                    position: L.latLng(e.latitude, e.longitude),
-                    adress: e.endereco,
-                    speed: e.velocidade_media_trecho
-                }
-                routing.orderStops.push(obj);
-           } 
-        });
-    } catch (error) {
-        console.log(error)  
-    }
-    
-}   
 
 // Criação dos Marcadores de Pontos de ônibus
 function initBusStops(){
@@ -364,7 +350,7 @@ function setPopupContent(popup, ponto, horarios, imageURL){
 
     let cobertura = (ponto.isCobertura) ? "Este ponto possui cobertura." : "";
 
-    let content = "<table border=\"0\" width=\"350\" style=\"font-size: 13px;\">" + "<tr>" + "<td colspan=\"2\" align=\"center\" style=\"font-size: 15px;\"><b>" + ponto.unidade + " </b><br/></td>" + "</tr> " + "<tr>" + "<td  align=\"center\">" + ponto.referencia + "</td>" + "</tr> " + "</tr> " + "<tr>" + "<td  align=\"center\"><img src=\""+imageURL+"\" style=\"max-width: 80%; max-height: 80%;\"></td>" + "</tr> " + "<tr>" + "<td  align=\"center\" ><b>Horários do " + ponto.descricao + "</b></td>" + "</tr> " + "<tr>" + "<td  align=\"center\">" + horarios + "</td>" + "</tr> " + "<tr>" + "<td  align=\"center\" style=\"font-weight: bold;\">" + cobertura + "</td>" + "</tr> " + "<tr>" + "<td  align=\"center\" style=\"font-size: 13px;\"><img src=img/cadeirante.jpg style=\"width: 15px; height: 15px;\"> <font color=\"#0000FF\">Viagens com &#244;nibus adaptado para deficientes f&#237;sicos</font></td>" + "</tr> " + "</table>";
+    let content = "<table border=\"0\" width=\"350\" style=\"font-size: 13px;\">" + "<tr>" + "<td colspan=\"2\" align=\"center\" style=\"font-size: 15px;\"><b>" + ponto.unidade + " </b><br/></td>" + "</tr> " + "<tr>" + "<td  align=\"center\">" + ponto.referencia + "</td>" + "</tr> " + "</tr> " + "<tr>" + "<td  align=\"center\"><img src=\""+imageURL+"\" style=\"max-width: 80%; max-height: 80%;\"></td>" + "</tr> " + "<tr>" + "<td  align=\"center\" ><b>Hor&#225;rios do " + ponto.descricao + "</b></td>" + "</tr> " + "<tr>" + "<td  align=\"center\">" + horarios + "</td>" + "</tr> " + "<tr>" + "<td  align=\"center\" style=\"font-weight: bold;\">" + cobertura + "</td>" + "</tr> " + "<tr>" + "<td  align=\"center\" style=\"font-size: 13px;\"><img src=img/cadeirante.jpg style=\"width: 15px; height: 15px;\"> <font color=\"#0000FF\">Viagens com &#244;nibus adaptado para deficientes f&#237;sicos</font></td>" + "</tr> " + "</table>";
 
     popup.setContent(content);
 }
@@ -423,7 +409,7 @@ function insetInput(linha, form){
 
     label.htmlFor = input.id;
     label.id = 'lbl-'+'linha'+linha.idCircular;
-    label.textContent = (linha.idCircular == LINHA_MORADIA ? " Ônibus ": " ") + linha.descricao;
+    label.innerHTML = (linha.idCircular == LINHA_MORADIA ? " &#212;nibus ": " ") + linha.descricao;
 
     if(linha.idCircular != LINHA_MORADIA){
         
@@ -453,11 +439,12 @@ function eventTraceRoute(){
 
 // armazenar as pegadas do trajeto para usá-las na função de traçar rotas 
 async function getWay() {
-    let path = `./percursos/percurso_linha_${idCircularLinha}.json`;
+    
+    let path = 'https://www.prefeitura.unicamp.br/posicao/site/percurso/linha/'+idCircularLinha;
+
     try {
-        let way = await fetch(path).then(res => res.json()).then(res => res.percurso);
+        let way = await fetch(path).then(res => res.json()).then(res => res.percursos);
         way.forEach(e => {
-            if(e.ativo){
                 let obj = {
                     id: e.id_coordenada,
                     position: L.latLng(e.latitude, e.longitude),
@@ -465,7 +452,6 @@ async function getWay() {
                     speed: e.velocidade_media_trecho
                 }
                 routing.pathway.push(obj);
-            } 
         });
     } catch (error) {
         console.log(error)  
@@ -487,25 +473,31 @@ function initialize(){
 
 // Inicializar mapa e suas camadas auxiliares
 function initMap(){
-
+	// url Tile layer: mapas.prefeitura.unicamp.br
+    let streets = L.tileLayer('http://10.0.254.44/tile/{z}/{x}/{y}.png', {
+    	maxZoom: 19,
+    	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+    
     let center = idCirculino != LINHA_MORADIA ? posicaoCentroUnicamp : posicaoCentroUnicampMoradia;
 
     let options = {
         center: center,
         zoom: (idCircularLinha != LINHA_MORADIA ? 15 : 14),
-        fullscreenControl: true
+        fullscreenControl: true,
+        layers: [streets]
     }
 
     map = L.map('mymap', options);
 
     // Camada de Mosaico do mapa
-    let CartoDB_Voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 19
-    });
-
-    CartoDB_Voyager.addTo(map);
+//    let CartoDB_Voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+//        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+//        subdomains: 'abcd',
+//        maxZoom: 19
+//    });
+//
+//    CartoDB_Voyager.addTo(map);
 
     insertKML();
     initBusStops();
@@ -624,7 +616,7 @@ function putIAmHereMarker(){
         
         let options = {
             title: 'Arraste o marcador para indicar onde você está',
-            icon: L.icon({iconUrl: './img/iamhere.png', iconSize: [50,50]}),
+            icon: L.icon({iconUrl: './img/iamhere.png'}),
             zIndexOffset: 1000,
             draggable: true
         }; 
@@ -655,7 +647,7 @@ function putIAmHereMarker(){
 function buscarPosicaoOnibus(){
 
     //Linhas internas
-    if (idCircularLinha != LINHA_MORADIA){
+    if (idCircularLinha != LINHA_MORADIA && !resetTime){
         
         let url = 'https://www.prefeitura.unicamp.br/posicao/site/linha/'+idCircularLinha+'/circulino/'+idCirculino;
 
@@ -681,7 +673,7 @@ function buscarPosicaoOnibus(){
     }
 
     //linha moradia
-    else {
+    else if(!resetTime){
         
         let url = 'https://www.prefeitura.unicamp.br/posicoes/site/linha/'+idCircularLinha;
         
@@ -766,56 +758,65 @@ function showWhereIsBus(){
         }
     
         msg += '</span>';
-        msg += '<br/><span style="font-weight: bold">A velocidade média atual é ' + currentVelocOnibus[0].toString() + ' km/h.</span>';
+        msg += '<br/><span style="font-weight: bold">A velocidade m&#233;dia atual &#233; ' + currentVelocOnibus[0].toString() + ' km/h.</span>';
     
         document.getElementById("endereco").innerHTML = msg;  
     }
 
 }
 
-function refreshDivModal(){
-    let link = "https://www.prefeitura.unicamp.br/apps/site/qualCircular.php?currentLatUsuario="+currentLatUsuario+"&currentLngUsuario="+currentLngUsuario;
-
-    fetch(link)
-    .then(res => res.arrayBuffer())
-    .then(buffer => decodeString(buffer));
-}
+//function refreshDivModal(){
+//    let link = "../qualCircular.php?currentLatUsuario="+currentLatUsuario+"&currentLngUsuario="+currentLngUsuario;
+//
+//    fetch(link)
+//    .then(res => res.arrayBuffer())
+//    .then(buffer => decodeString(buffer));
+//}
 
 function decodeString(buffer) {
     let decoder = new TextDecoder('iso-8859-1');
     let text = decoder.decode(buffer);
     refreshModal(text);
 }
+//
+//function refreshModal(text){
+//    const divModal = document.querySelector('#modalContentQualCircular');
+//    divModal.innerHTML = text;
+//    myModalSubmit();
+//}
 
-function refreshModal(text){
-    const divModal = document.querySelector('#modalContentQualCircular');
-    divModal.innerHTML = text;
-    myModalSubmit();
+//função para atualizar conteúdo do div modalContentQualCircular (qual circular pegar?)
+function refreshDivModal(){
+	$('#modalContentQualCircular').load('../qualCircular.php?currentLatUsuario='+currentLatUsuario+'&currentLngUsuario='+currentLngUsuario);
 }
 
 function eventQualCircularPegar() {
 
-    const modal = document.querySelector('#myModal'); 
-    const btn = document.querySelector('#qualCircular');
-    const closeSpan = document.querySelector('.close');
+	var modal = document.getElementById("myModal");
+	var btn = document.getElementById("qualCircular");
+	var span = document.getElementsByClassName("close")[0];
 
-    btn.addEventListener('click', function(){
-        modal.style.display = 'block';
-        document.getElementById("resultadoQualCircular").innerHTML = ''; 
+	btn.onclick = function() {
 
-    });
-    
-    closeSpan.addEventListener('click', function(){
-        modal.style.display = 'none';
-    })
+		modal.style.display = "block";
+	    document.getElementById("resultadoQualCircular").innerHTML = '';  
+  
+	}
 
-    window.onclick = function(event){
-        if(event.target == modal){
-            modal.style.display = 'none';
-        }
-    }
+	span.onclick = function() {
+	    modal.style.display = "none";
+	}
+	
+	window.onclick = function(event) {
+	    if (event.target == modal) {
+	        modal.style.display = "none";
+	    }
+	}
+
+	modal.style.display = "none";
 
 }
+
 
 function myModalSubmit() {
     const frmBusca = document.querySelector('#frmBusca');
